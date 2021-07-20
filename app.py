@@ -26,7 +26,7 @@ def printarg():
 
 @app.route('/api/esxitest')
 def esxii():
-    esxiInfo = vc_esxi_test.get_esxi_info()
+    esxiInfo = test.get_esxi_info()
     return jsonify(esxiInfo)
 
 
