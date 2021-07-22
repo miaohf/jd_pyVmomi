@@ -7,7 +7,7 @@ Github:
 Some
 """
 
-from pyVmomi import vim
+from pyVmomi import vim, vmodl
 from src_share import get_objInfo, logger, get_obj_id, task_check, vc_login
 import argparse
 import time
@@ -236,10 +236,15 @@ class VirtualMachine:
         try:
             task = templateToClone.Clone(folderToClone, vmNameToClone,
                                          cloneSpec)
-            task_check.task_check(task)
-            msg = ("新虚机 {} 克隆成功。".format(newvm))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("新虚机 {} 克隆成功。".format(newvm))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
         except vim.fault.RuntimeFault as e:
             msg = ("新虚机 {} 克隆失败。".format(newvm))
             log.info(msg)
@@ -266,10 +271,14 @@ class VirtualMachine:
 
         try:
             task = vmEntity.Destroy_Task()
-            task_check.task_check(task)
-            msg = ("虚机 {} 已被成功删除。".format(self.__name))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("虚机 {} 已被成功删除。".format(self.__name))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 删除失败。".format(self.__name)) + e
             log.error(msg)
@@ -320,10 +329,14 @@ class VirtualMachine:
 
         try:
             task = vmEntity.PowerOff()
-            task_check.task_check(task)
-            msg = ("虚机 {} 已成功关闭电源。".format(self.__name))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("虚机 {} 已成功关闭电源。".format(self.__name))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 关闭电源失败。".format(self.__name)) + e
             log.error(msg)
@@ -350,10 +363,14 @@ class VirtualMachine:
 
         try:
             task = vmEntity.PowerOn()
-            task_check.task_check(task)
-            msg = ("虚机 {} 已成功打开电源。".format(self.__name))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("虚机 {} 已成功打开电源。".format(self.__name))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 打开电源失败。".format(self.__name)) + e
             log.error(msg)
@@ -411,10 +428,14 @@ class VirtualMachine:
                                            description=snapshotDescription,
                                            memory=False,
                                            quiesce=False)
-            task_check.task_check(task)
-            msg = ("成功为虚机 {} 新建快照 {}。".format(self.__name, snapshotName))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功为虚机 {} 新建快照 {}。".format(self.__name, snapshotName))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 快照新建失败。".format(self.__name)) + e.msg
             log.error(msg)
@@ -461,10 +482,14 @@ class VirtualMachine:
 
         try:
             task = snapshotDel.RemoveSnapshot_Task(removeChildren=False)
-            task_check.task_check(task)
-            msg = ("成功删除虚机 {} 的快照 {}。".format(self.__name, snapshot_name))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功删除虚机 {} 的快照 {}。".format(self.__name, snapshot_name))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 的快照 {} 删除失败。".format(self.__name,
                                                snapshot_name)) + e.msg
@@ -512,10 +537,14 @@ class VirtualMachine:
 
         try:
             task = snapshotRevert.RevertToSnapshot_Task()
-            task_check.task_check(task)
-            msg = ("成功将虚机 {} 恢复到快照 {}。".format(self.__name, snapshot_name))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功将虚机 {} 恢复到快照 {}。".format(self.__name, snapshot_name))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 恢复到快照 {} 失败。".format(self.__name,
                                                snapshot_name)) + e.msg
@@ -546,10 +575,14 @@ class VirtualMachine:
 
         try:
             task = vmEntity.RemoveAllSnapshots_Task()
-            task_check.task_check(task)
-            msg = ("成功将虚机 {} 的所有快照删除。".format(self.__name))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功将虚机 {} 的所有快照删除。".format(self.__name))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 的所有快照删除失败。".format(self.__name)) + e.msg
             log.error(msg)
@@ -591,10 +624,15 @@ class VirtualMachine:
 
         try:
             task = vmEntity.ReconfigVM_Task(spec=spec)
-            task_check.task_check(task)
-            msg = ("成功将虚机 {} 的内存调整为 {} GB。".format(self.__name, newmemsize))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功将虚机 {} 的内存调整为 {} GB。".format(self.__name, newmemsize))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} 内存失败。".format(self.__name)) + e.msg
             log.error(msg)
@@ -636,10 +674,15 @@ class VirtualMachine:
 
         try:
             task = vmEntity.ReconfigVM_Task(spec=spec)
-            task_check.task_check(task)
-            msg = ("成功将虚机 {} 的CPU数量调整为 {} 。".format(self.__name, newcpunum))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功将虚机 {} 的CPU数量调整为 {} 。".format(self.__name, newcpunum))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} CPU数量失败。".format(self.__name)) + e.msg
             log.error(msg)
@@ -708,10 +751,14 @@ class VirtualMachine:
 
         try:
             task = vmEntity.ReconfigVM_Task(spec=spec)
-            task_check.task_check(task)
-            msg = ("成功为虚机 {} 添加了一块网卡 {} 。".format(self.__name, newnicname))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功为虚机 {} 添加了一块网卡 {} 。".format(self.__name, newnicname))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 添加网卡 {} 失败。".format(self.__name, newnicname)) + e.msg
             log.error(msg)
@@ -772,10 +819,15 @@ class VirtualMachine:
 
         try:
             task = vmEntity.ReconfigVM_Task(spec=spec)
-            task_check.task_check(task)
-            msg = ("成功为虚机 {} 第 {} 块网卡。".format(self.__name, nicnumber))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功为虚机 {} 第 {} 块网卡。".format(self.__name, nicnumber))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 删除第 {} 块网卡失败。".format(self.__name, nicnumber)) + e.msg
             log.error(msg)
@@ -836,10 +888,15 @@ class VirtualMachine:
 
         try:
             task = vmEntity.ReconfigVM_Task(spec=spec)
-            task_check.task_check(task)
-            msg = ("成功为虚机 {} 新增了一块 {}GB 的磁盘。".format(self.__name, disksize))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功为虚机 {} 新增了一块 {}GB 的磁盘。".format(self.__name, disksize))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 新增磁盘失败。".format(self.__name)) + e.msg
             log.error(msg)
@@ -903,15 +960,98 @@ class VirtualMachine:
 
         try:
             task = vmEntity.ReconfigVM_Task(spec=spec)
-            task_check.task_check(task)
-            msg = ("成功为虚机 {} 删除了第 {} 块磁盘。".format(self.__name, disknumber))
-            log.info(msg)
-            return 'OK'
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功为虚机 {} 删除了第 {} 块磁盘。".format(self.__name, disknumber))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 删除第 {} 块磁盘失败。".format(self.__name,
                                                 disknumber)) + e.msg
             log.error(msg)
             return 'Failed'
+
+    def vm_configure_ipaddress(self, newip):
+        """
+        为虚机配置 IP 使用  CustomizeVM_Task 方法。在不指定网卡 MAC 的情况下，该方法会
+        按照网卡序号的顺序（即 Network Adapter 1/2/3，也即 vc 上看到的顺序）为网卡配置IP。
+        在我们的环境内，每台虚机默认有三块网卡，所以 newip 里会按约定好的顺序写入IP地址。
+        另外，一个 IP 会对应一个网络适配器，我们需要配置好所有网络适配器的参数。
+        :param newip: 一个列表，包含三个IP。（IP 个数根据自身环境情况自定义）
+        """
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            return 'Failed'
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            return 'Failed'
+
+        if len(newip) == 0:
+            msg = "未指定 IP 地址。"
+            log.error(msg)
+            return 'Failed'
+
+        # 1
+        nicSettingMap = []
+        for ip in newip:
+            if newip.index(ip) == 0:
+                subnetMask = '255.255.240.0'
+            else:
+                subnetMask = '255.255.255.0'
+
+            adapterMap = vim.vm.customization.AdapterMapping()
+            adapterMap.adapter = vim.vm.customization.IPSettings()
+            adapterMap.adapter.ip = vim.vm.customization.FixedIp()
+            adapterMap.adapter.ip.ipAddress = ip
+            adapterMap.adapter.subnetMask = subnetMask
+            if newip.index(ip) == 3:
+                adapterMap.adapter.gateway = '172.30.241.1'
+
+            globalIP = vim.vm.customization.GlobalIPSettings()
+            ident = vim.vm.customization.LinuxPrep()
+            ident.hostName = vim.vm.customization.FixedName()
+            ident.hostName.name = vmEntity.name
+            nicSettingMap.append(adapterMap)
+
+            spec = vim.vm.customization.Specification()
+            spec.nicSettingMap = nicSettingMap
+            spec.globalIPSettings = globalIP
+            spec.identity = ident
+
+            try:
+                task = vmEntity.CustomizeVM_Task(spec=spec)
+                o, m = task_check.task_check(task)
+                if o == 'OK':
+                    if newip.index(ip) == 3:
+                        msg = ('成功为虚机 {} 配置了 IP {}，掩码为 {}，网关为 {}'.
+                               format(self.__name, ip, subnetMask,
+                                      adapterMap.adapter.gateway))
+                    else:
+                        msg = ('成功为虚机 {} 配置了 IP {}，掩码为 {}'.
+                               format(self.__name, ip, subnetMask))
+                    log.info(msg)
+                else:
+                    msg = (
+                        "为虚机 {} 配置 IP 失败 {}：{}".format(self.__name, ip, m.msg))
+                    log.error(msg)
+                    return 'Failed'
+
+            except vim.fault.CustomizationFault as e:
+                msg = e
+                log.error(msg)
+                return 'Failed'
+
+        return 'OK'
 
 
 # 递归获取所有快照信息

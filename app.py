@@ -432,6 +432,22 @@ def vm_clone(cloudid):
                        newvmdatastore=newvmdatastore)
 
 
+# 为虚拟机配置 IP
+@app.route('/api/<int:cloudid>/vm_configure_ipaddress')
+def vm_configure_ipaddress(cloudid):
+    vmname = request.args.get('vmname')
+    parentFolder = request.args.get('pfolder')
+    newIP1 = request.args.get('newIP1')
+    newIP = [newIP1]
+    # newIP2 = request.args.get('newIP2')
+    # newIP3 = request.args.get('newIP3')
+    # newIP = [newIP1, newIP2, newIP3]
+
+    vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_configure_ipaddress(newip=newIP)
+
+
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
     app.run()
