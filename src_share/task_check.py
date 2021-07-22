@@ -17,9 +17,9 @@ def task_check(task):
             taskStatus = 'OK'
             return taskStatus, task.info.result
 
-        # if task.info.state == "running":
-        #     time.sleep(0.35)
-        #     continue
+        if task.info.state == "running":
+            time.sleep(0.35)
+            continue
 
         if task.info.state == "error":
             taskStatus = 'Failed'

@@ -7,7 +7,7 @@ Github:
 Some
 """
 
-from pyVmomi import vim, vmodl
+from pyVmomi import vim
 from src_share import get_objInfo, logger, get_obj_id, task_check, vc_login
 import argparse
 import time
@@ -246,7 +246,7 @@ class VirtualMachine:
                 return 'Failed'
 
         except vim.fault.RuntimeFault as e:
-            msg = ("新虚机 {} 克隆失败。".format(newvm))
+            msg = ("新虚机 {} 克隆失败：{}。".format(newvm, e.msg))
             log.info(msg)
             return 'Failed'
 
@@ -1001,9 +1001,11 @@ class VirtualMachine:
             log.error(msg)
             return 'Failed'
 
-        # 1
+        # 为每一块网卡配置一个 IP
+        global nicSettingMap
         nicSettingMap = []
         for ip in newip:
+            # 在我的环境内，第一个 IP 地址的掩码会配置成 20
             if newip.index(ip) == 0:
                 subnetMask = '255.255.240.0'
             else:
@@ -1014,44 +1016,111 @@ class VirtualMachine:
             adapterMap.adapter.ip = vim.vm.customization.FixedIp()
             adapterMap.adapter.ip.ipAddress = ip
             adapterMap.adapter.subnetMask = subnetMask
-            if newip.index(ip) == 3:
-                adapterMap.adapter.gateway = '172.30.241.1'
-
-            globalIP = vim.vm.customization.GlobalIPSettings()
-            ident = vim.vm.customization.LinuxPrep()
-            ident.hostName = vim.vm.customization.FixedName()
-            ident.hostName.name = vmEntity.name
+            # 在我的环境内，第三个 IP 需要配置网关
+            if newip.index(ip) == 2:
+                gateway = ".".join(str(ip).split(".")[:3]) + ".1"
+                adapterMap.adapter.gateway = gateway
             nicSettingMap.append(adapterMap)
 
-            spec = vim.vm.customization.Specification()
-            spec.nicSettingMap = nicSettingMap
-            spec.globalIPSettings = globalIP
-            spec.identity = ident
+        globalIP = vim.vm.customization.GlobalIPSettings()
+        ident = vim.vm.customization.LinuxPrep()
+        ident.hostName = vim.vm.customization.FixedName()
+        ident.hostName.name = vmEntity.name
 
-            try:
-                task = vmEntity.CustomizeVM_Task(spec=spec)
-                o, m = task_check.task_check(task)
-                if o == 'OK':
-                    if newip.index(ip) == 3:
-                        msg = ('成功为虚机 {} 配置了 IP {}，掩码为 {}，网关为 {}'.
-                               format(self.__name, ip, subnetMask,
-                                      adapterMap.adapter.gateway))
-                    else:
-                        msg = ('成功为虚机 {} 配置了 IP {}，掩码为 {}'.
-                               format(self.__name, ip, subnetMask))
-                    log.info(msg)
-                else:
-                    msg = (
-                        "为虚机 {} 配置 IP 失败 {}：{}".format(self.__name, ip, m.msg))
-                    log.error(msg)
-                    return 'Failed'
+        spec = vim.vm.customization.Specification()
+        spec.nicSettingMap = nicSettingMap
+        spec.globalIPSettings = globalIP
+        spec.identity = ident
 
-            except vim.fault.CustomizationFault as e:
-                msg = e
+        try:
+            task = vmEntity.CustomizeVM_Task(spec=spec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ('成功为虚机 {} 配置了 IP。'.format(self.__name))
+                log.info(msg)
+                return 'OK'
+            else:
+                msg = ("为虚机 {} 配置 IP 失败：{}".format(self.__name, m.msg))
                 log.error(msg)
                 return 'Failed'
 
-        return 'OK'
+        except vim.fault.CustomizationFault as e:
+            msg = e
+            log.error(msg)
+            return 'Failed'
+
+    def vm_relocate(self, host, datastore):
+        """
+        :param host: 新主机，不可以为空
+        :param datastore: 新存储，不可以为空。
+        虚机迁移，在我们环境内，由于没有共享存储，用不了 vMotion，迁移只能关机冷迁移。
+        要先检查下新存储是否属于新主机，不属于则报错退出。
+        """
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            return 'Failed'
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            return 'Failed'
+
+        if not host:
+            msg = "未指定迁移后的主机。"
+            log.error(msg)
+            return 'Failed'
+
+        if not datastore:
+            msg = "未指定迁移后的存储。"
+            log.error(msg)
+            return 'Failed'
+
+        hostObj = get_objInfo.get_obj(self.__cloudid, [vim.HostSystem], host)
+        if not hostObj:
+            msg = "指定的主机 {} 不存在。".format(host)
+            log.error(msg)
+            return 'Failed'
+        datastoreObj = get_objInfo.get_obj(self.__cloudid, [vim.Datastore],
+                                           datastore)
+        if not datastoreObj:
+            msg = "指定的存储 {} 不存在。".format(datastore)
+            log.error(msg)
+            return 'Failed'
+
+        if datastoreObj not in hostObj.datastore:
+            msg = "指定的存储 {} 不属于指定的主机 {}。".format(datastore, host)
+            log.error(msg)
+            return 'Failed'
+
+        if vmEntity.runtime.powerState == 'poweredon':
+            msg = "虚拟机 {} 处于开机状态，请关机后再进行迁移。".format(self.__name)
+            log.error(msg)
+            return 'Failed'
+
+        relocateSpec = vim.vm.RelocateSpec()
+        relocateSpec.host = hostObj
+        relocateSpec.datastore = datastoreObj
+
+        try:
+            task = vmEntity.RelocateVM_Task(relocateSpec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("虚机 {} 迁移完毕，当前主机：{}，存储：{}".format(self.__name, host,
+                                                         datastore))
+                log.info(msg)
+                return 'OK'
+            else:
+                msg = ("虚机 {} 迁移失败：".format(self.__name, m.msg))
+                log.error(msg)
+                return 'Failed'
+        except vim.fault.MigrationFault as e:
+            msg = ("虚机 {} 迁移失败：".format(self.__name, e))
+            log.error(msg)
+            return 'Failed'
 
 
 # 递归获取所有快照信息
@@ -1069,39 +1138,7 @@ def vm_snapshot_list(rootsnapshot):
 
 
 if __name__ == "__main__":
-    si = vc_login.vclogin()
-    content = si.RetrieveContent()
-    args = get_args()
-    vm = VirtualMachine(args.vmName)
-
-    if args.operate == "get":
-        vm.get_vm()
-    elif args.operate == "clone":
-        vm.vm_clone()
-    elif args.operate == "rename":
-        vm.vm_rename()
-    elif args.operate == "poweroff":
-        vm.vm_poweroff()
-    elif args.operate == "poweron":
-        vm.vm_power_on()
-    elif args.operate == "reboot":
-        vm.vm_reboot()
-    elif args.operate == "createsnapshot":
-        vm.vm_snapshot_create()
-    elif args.operate == "deletesnapshot":
-        vm.vm_snapshot_delete(args.snapshotName)
-    elif args.operate == "deleteallsnapshot":
-        vm.vm_snapshot_delete_all()
-    elif args.operate == "listsnapshot":
-        vm = get_objInfo.get_obj(content, [vim.VirtualMachine], args.vmName)
-        print(vm_snapshot_list(vm.snapshot.rootSnapshotList))
-    elif args.operate == "revertsnapshot":
-        vm.vm_snapshot_revert(args.snapshotName)
-    elif args.operate == "reconfigmem":
-        vm.vm_reconfigure_mem()
-    elif args.operate == "reconfigcpu":
-        vm.vm_reconfig_cpu()
-    elif args.operate == "addnic":
-        vm.vm_reconfigure_nic_add()
-    else:
-        raise ValueError('[ERROR] Wrong parameters.Use -h to see parameters.')
+    vmEntity = VirtualMachine('api-test', 'ljd-admin', 8)
+    # 虚机配 IP
+    # newip = ['x', 'x', 'x']
+    # print(vmEntity.vm_configure_ipaddress(newip))

@@ -437,15 +437,27 @@ def vm_clone(cloudid):
 def vm_configure_ipaddress(cloudid):
     vmname = request.args.get('vmname')
     parentFolder = request.args.get('pfolder')
-    newIP1 = request.args.get('newIP1')
-    newIP = [newIP1]
-    # newIP2 = request.args.get('newIP2')
-    # newIP3 = request.args.get('newIP3')
-    # newIP = [newIP1, newIP2, newIP3]
+    newIP1 = request.args.get('newip1')
+    newIP2 = request.args.get('newip2')
+    newIP3 = request.args.get('newip3')
+    newIP = [newIP1, newIP2, newIP3]
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_configure_ipaddress(newip=newIP)
+
+
+# 虚拟机迁移
+@app.route('/api/<int:cloudid>/vm_relocate')
+def vm_relocate(cloudid):
+    vmname = request.args.get('vmname')
+    parentFolder = request.args.get('pfolder')
+    host = request.args.get('host')
+    datastore = request.args.get('datastore')
+
+    vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_relocate(host=host, datastore=datastore)
 
 
 if __name__ == '__main__':
