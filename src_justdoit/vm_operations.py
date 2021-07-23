@@ -8,71 +8,8 @@ Some
 """
 
 from pyVmomi import vim
-from src_share import get_objInfo, logger, get_obj_id, task_check, vc_login
-import argparse
+from src_share import get_objInfo, logger, get_obj_id, task_check
 import time
-
-
-def get_args():
-    """
-    参数 -h 是可选的，因为后面代码里会设置新虚机所在主机与模板主机保持一致，这样克隆的速度比较快。
-    :return:
-    """
-    parse = argparse.ArgumentParser(
-        description='Arguments for clone a VM from template'
-    )
-
-    parse.add_argument('-v', '--vmName',
-                       action='store',
-                       required=True,
-                       help='Name of the VM')
-
-    parse.add_argument('-o', '--operate',
-                       required=True,
-                       action='store',
-                       help='Operation to do')
-
-    parse.add_argument('-f', '--folderName',
-                       action='store',
-                       help='Folder of the VM')
-
-    parse.add_argument('-t', '--templateName',
-                       action='store',
-                       help='Name of the template')
-
-    parse.add_argument('-s', '--hostName',
-                       action='store',
-                       help='Host ip of the host.Use -s to avoid '
-                            'conflicting with -h')
-
-    parse.add_argument('-d', '--datastoreName',
-                       action='store',
-                       help='Name of the datastore')
-
-    parse.add_argument('-n', '--newName',
-                       action='store',
-                       help='New name of VM(Used when operate=rename')
-
-    parse.add_argument('-x', '--snapshotName',
-                       action='store',
-                       help="The name of a vm snapshot")
-
-    parse.add_argument('-m', '--memorySize',
-                       action='store',
-                       type=int,
-                       help="New memory size in MB")
-
-    parse.add_argument('-c', '--cpuNum',
-                       action='store',
-                       type=int,
-                       help="Number of virtual processors")
-
-    parse.add_argument('-i', '--networkName',
-                       action='store',
-                       help='Name of a nic')
-
-    my_args = parse.parse_args()
-    return my_args
 
 
 class VirtualMachine:
@@ -141,7 +78,7 @@ class VirtualMachine:
 
         return None, pfolderObj
 
-    def vm_clone(self, newvm, newvmpfolder, newvmhost, newvmdatastore):
+    def vm_clone(self, newvm, newvmpfolder, newvmhost='', newvmdatastore=''):
         """
         此函数用来从模板克隆一台新的虚拟机。
         self 即模板本身
@@ -231,6 +168,156 @@ class VirtualMachine:
 
         cloneSpec = vim.vm.CloneSpec()
         cloneSpec.location = cloneRelocateSpec
+        cloneSpec.powerOn = True
+
+        try:
+            task = templateToClone.Clone(folderToClone, vmNameToClone,
+                                         cloneSpec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("新虚机 {} 克隆成功。".format(newvm))
+                log.info(msg)
+                return 'OK'
+            else:
+                log.error(m)
+                return 'Failed'
+
+        except vim.fault.RuntimeFault as e:
+            msg = ("新虚机 {} 克隆失败：{}。".format(newvm, e.msg))
+            log.info(msg)
+            return 'Failed'
+
+    def vm_clone_with_ip(self, newvm, newvmpfolder, newip, newvmhost='',
+                         newvmdatastore=''):
+        """
+        此函数用来从模板克隆一台新的虚拟机。
+        self 即模板本身
+        :param newvm: 新虚机的名字，注意不能包含下划线 "_" 或者空格 " " 或者圆点符 "."
+        :param newvmpfolder: 新虚机所在的文件夹
+        :param newip: 新虚拟机要配置的 IP 列表（可以参考下方 vm_configure_ipaddress（） ）
+        :param newvmhost: 新虚机所在主机，可以为空（和模板一致）
+        :param newvmdatastore: 新虚机所在存储，可以为空（和模板一致）
+        """
+        log = logger.Logger("vCenter_vm_operations")
+
+        # 可以不指定模板虚机的父文件夹。这要求模板名字要唯一且准确无误
+        if self.__pfolder is None:
+            templateToClone = get_objInfo.get_obj(self.__cloudid,
+                                                  [vim.VirtualMachine],
+                                                  self.__name)
+        else:
+            templateToClone, pfolderObj = self.get_vm_obj()
+            if pfolderObj is None:
+                msg = ("指定的模板的父文件夹 {} 不存在。".format(self.__pfolder))
+                log.error(msg)
+                return 'Failed'
+
+            if templateToClone is None:
+                msg = ("指定的模板 {} 不存在。".format(self.__name))
+                log.error(msg)
+                return 'Failed'
+
+        if not newvm:
+            msg = "未指定新虚机名字。"
+            log.error(msg)
+            return 'Failed'
+
+        # 检查新虚机的目录是否存在
+        folderToClone = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
+                                            newvmpfolder)
+        if not folderToClone:
+            msg = ("指定的新虚机的父文件夹 {} 不存在。".format(newvmpfolder))
+            log.error(msg)
+            return 'Failed'
+
+        # vm's name
+        vmNameToClone = newvm
+
+        # 如果没有指定主机，则默认和模板所使用的主机一致
+        if not newvmhost:
+            hostToClone = templateToClone.summary.runtime.host
+        else:
+            hostToClone = get_objInfo.get_obj(self.__cloudid,
+                                              [vim.HostSystem],
+                                              newvmhost)
+        if not hostToClone:
+            msg = ("指定的主机 {} 不存在。".format(newvmhost))
+            log.error(msg)
+            return 'Failed'
+
+        # 如果没有指定存储，则默认和模板所使用的存储一致
+        # 如果指定了存储，则先检查指定的存储是否属于主机hostToClone
+        if not newvmdatastore:
+            # 创建模板时，模板有且仅有一个存储
+            datastoreToClone = templateToClone.datastore[0]
+        else:
+            datastoreToClone = get_objInfo.get_obj(self.__cloudid,
+                                                   [vim.Datastore],
+                                                   newvmdatastore)
+        if datastoreToClone is None:
+            msg = ("指定的存储 {} 不存在。".format(newvmdatastore))
+            log.error(msg)
+            return 'Failed'
+
+        if datastoreToClone not in hostToClone.datastore:
+            msg = (
+                "指定的存储 {} 不属于主机 {}。".format(datastoreToClone.name,
+                                            hostToClone.name))
+            log.error(msg)
+            return 'Failed'
+
+        # set resource pool，vc里只有一个资源池 Resources
+        cloneResource_pool = get_objInfo.get_obj(self.__cloudid,
+                                                 [vim.ResourcePool],
+                                                 "Resources")
+
+        if len(newip) == 0:
+            msg = ("未指定新虚机的 IP 列表。".format(newvmhost))
+            log.error(msg)
+            return 'Failed'
+
+        # 新虚机所在的存储、主机、资源次等信息的 spec
+        cloneRelocateSpec = vim.vm.RelocateSpec()
+        cloneRelocateSpec.datastore = datastoreToClone
+        cloneRelocateSpec.pool = cloneResource_pool
+        cloneRelocateSpec.host = hostToClone
+
+        # 新虚机 ip 信息的 spec
+        # 为每一块网卡配置一个 IP
+        global nicSettingMap
+        nicSettingMap = []
+        for ip in newip:
+            # 在我的环境内，第一个 IP 地址的掩码会配置成 20
+            if newip.index(ip) == 0:
+                subnetMask = '255.255.240.0'
+            else:
+                subnetMask = '255.255.255.0'
+
+            adapterMap = vim.vm.customization.AdapterMapping()
+            adapterMap.adapter = vim.vm.customization.IPSettings()
+            adapterMap.adapter.ip = vim.vm.customization.FixedIp()
+            adapterMap.adapter.ip.ipAddress = ip
+            adapterMap.adapter.subnetMask = subnetMask
+            # 在我的环境内，第三个 IP 需要配置网关
+            if newip.index(ip) == 2:
+                gateway = ".".join(str(ip).split(".")[:3]) + ".1"
+                adapterMap.adapter.gateway = gateway
+            nicSettingMap.append(adapterMap)
+
+        globalIP = vim.vm.customization.GlobalIPSettings()
+        ident = vim.vm.customization.LinuxPrep()
+        ident.hostName = vim.vm.customization.FixedName()
+        ident.hostName.name = newvm
+
+        cloneCustomSpec = vim.vm.customization.Specification()
+        cloneCustomSpec.nicSettingMap = nicSettingMap
+        cloneCustomSpec.globalIPSettings = globalIP
+        cloneCustomSpec.identity = vmNameToClone
+
+        # clone 所需的 spec
+        cloneSpec = vim.vm.CloneSpec()
+        cloneSpec.location = cloneRelocateSpec
+        cloneSpec.customization = cloneCustomSpec
         cloneSpec.powerOn = True
 
         try:
@@ -764,7 +851,7 @@ class VirtualMachine:
             log.error(msg)
             return 'Failed'
 
-    def vm_reconfigure_nic_remove(self, nicnumber, ):
+    def vm_reconfigure_nic_remove(self, nicnumber):
         log = logger.Logger("vCenter_vm_operations")
         vmEntity, pfolderObj = self.get_vm_obj()
         if pfolderObj is None:
