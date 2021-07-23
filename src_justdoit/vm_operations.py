@@ -312,7 +312,7 @@ class VirtualMachine:
         cloneCustomSpec = vim.vm.customization.Specification()
         cloneCustomSpec.nicSettingMap = nicSettingMap
         cloneCustomSpec.globalIPSettings = globalIP
-        cloneCustomSpec.identity = vmNameToClone
+        cloneCustomSpec.identity = ident
 
         # clone 所需的 spec
         cloneSpec = vim.vm.CloneSpec()

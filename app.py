@@ -240,6 +240,43 @@ def vm_exist_check(cloudid):
     return vm.vm_exist_check()
 
 
+# 克隆虚拟机
+@app.route('/api/<int:cloudid>/vm_clone')
+def vm_clone(cloudid):
+    templateName = request.args.get('template')
+    parentFolder = request.args.get('pfolder')
+    newvm = request.args.get('newvm')
+    newvmpfolder = request.args.get('newvmpfolder')
+    newvmhost = request.args.get('newvmhost')
+    newvmdatastore = request.args.get('newvmdatastore')
+
+    vm = vm_operations.VirtualMachine(name=templateName, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_clone(newvm=newvm, newvmpfolder=newvmpfolder,
+                       newvmhost=newvmhost, newvmdatastore=newvmdatastore)
+
+
+# 克隆虚拟机，并配置 IP 地址
+@app.route('/api/<int:cloudid>/vm_clone_with_ip')
+def vm_clone_with_ip(cloudid):
+    templateName = request.args.get('template')
+    parentFolder = request.args.get('pfolder')
+    newvm = request.args.get('newvm')
+    newip1 = request.args.get('newip1')
+    newip2 = request.args.get('newip2')
+    newip3 = request.args.get('newip3')
+    newIP = [newip1, newip2, newip3]
+    newvmpfolder = request.args.get('newvmpfolder')
+    newvmhost = request.args.get('newvmhost')
+    newvmdatastore = request.args.get('newvmdatastore')
+
+    vm = vm_operations.VirtualMachine(name=templateName, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_clone_with_ip(newvm=newvm, newvmpfolder=newvmpfolder,
+                               newip=newIP, newvmhost=newvmhost,
+                               newvmdatastore=newvmdatastore)
+
+
 # 删除虚拟机
 @app.route('/api/<int:cloudid>/vm_delete')
 def vm_delete(cloudid):
@@ -412,24 +449,6 @@ def vm_reconfigure_disk_remove(cloudid):
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_reconfigure_disk_remove(disknumber=disknumber)
-
-
-# 从模板克隆虚拟机
-@app.route('/api/<int:cloudid>/vm_clone')
-def vm_clone(cloudid):
-    templatename = request.args.get('templatename')
-    templatefolder = request.args.get('templatefolder')
-    newvm = request.args.get('newvm')
-    newvmpfolder = request.args.get('newvmpfolder')
-    newvmhost = request.args.get('newvmhost')
-    newvmdatastore = request.args.get('newvmdatastore')
-
-    vm = vm_operations.VirtualMachine(name=templatename, pfolder=templatefolder,
-                                      cloudid=cloudid)
-    return vm.vm_clone(newvm=newvm,
-                       newvmpfolder=newvmpfolder,
-                       newvmhost=newvmhost,
-                       newvmdatastore=newvmdatastore)
 
 
 # 为虚拟机配置 IP

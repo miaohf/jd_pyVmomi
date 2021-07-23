@@ -15,7 +15,7 @@ examples for the pyVmomi library
 
 ### src_justdoit
 
-实现了日常运维工作中，一些常用的操作，例如克隆虚拟机、虚拟机CPU/内存/磁盘大小的调整以及快照操作
+实现了日常运维工作中，一些常用的操作，例如克隆虚拟机、配置 IP 地址、虚拟机 CPU/内存/磁盘大小的调整以及快照等操作
 
 ### src_share
 
