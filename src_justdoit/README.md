@@ -1,8 +1,8 @@
-# src_get_info
+# folder_operations.py
 
 包含了对文件夹的新建、删除、重命名等操作。
 
-# src_justdoit
+# vm_operations.py
 
 `vm_operations.py` 内定义了虚拟机类`VirtualMachine`
 
