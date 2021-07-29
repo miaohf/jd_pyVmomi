@@ -1,1 +1,7 @@
-conf/logs/t1.pyt2.pytest/venv/.idea
+conf/
+logs/
+t1.py
+t2.py
+test/
+venv/
+.idea

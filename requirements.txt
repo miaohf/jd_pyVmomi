@@ -1,1 +1,2 @@
-pyvmomi~=7.0.2Flask~=2.0.1
+pyvmomi~=7.0.2
+Flask~=2.0.1
