@@ -10,6 +10,8 @@ Some
 from pyVmomi import vim
 from src_share import get_objInfo, logger, get_obj_id, task_check
 import time
+import string
+import random
 
 
 class VirtualMachine:
@@ -307,9 +309,21 @@ class VirtualMachine:
         globalIP = vim.vm.customization.GlobalIPSettings()
         ident = vim.vm.customization.LinuxPrep()
         ident.hostName = vim.vm.customization.FixedName()
-        # hostname 统一设置成 vmcentos，而不是新虚机名字，因为新虚机名字可能为中文。
-        ident.hostName.name = "vmcentos"
+        # 主机名设置为 'vm-' + cloudid（只有一位的前面补一个0） + '-' + 5 位随机字符串（不能全部是数字）
+        cloudID = str(self.__cloudid)
+        if len(cloudID) == 1:
+            cloudID = '0' + cloudID
 
+        while True:
+            randomStr = ''.join(
+                random.choice(string.ascii_lowercase + string.digits) for _ in
+                range(5))
+            if not randomStr.isdigit():
+                break
+
+        ident.hostName.name = "vm-" + cloudID + '-' + randomStr
+
+        # 设置自定义配置文件
         cloneCustomSpec = vim.vm.customization.Specification()
         cloneCustomSpec.nicSettingMap = nicSettingMap
         cloneCustomSpec.globalIPSettings = globalIP
@@ -1113,7 +1127,21 @@ class VirtualMachine:
         globalIP = vim.vm.customization.GlobalIPSettings()
         ident = vim.vm.customization.LinuxPrep()
         ident.hostName = vim.vm.customization.FixedName()
-        ident.hostName.name = vmEntity.name
+        # 主机名设置为 'vm-' + cloudid（只有一位的前面补一个0） + '-' + 5 位随机字符串（不能全部是数字）
+        cloudID = str(self.__cloudid)
+        if len(cloudID) == 1:
+            cloudID = '0' + cloudID
+
+        while True:
+            randomStr = ''.join(
+                random.choice(string.ascii_lowercase + string.digits) for _ in
+                range(5))
+            if not randomStr.isdigit():
+                break
+
+        randomHostname = "vm-" + cloudID + '-' + randomStr
+
+        ident.hostName.name = randomHostname
 
         spec = vim.vm.customization.Specification()
         spec.nicSettingMap = nicSettingMap
