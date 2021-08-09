@@ -307,7 +307,8 @@ class VirtualMachine:
         globalIP = vim.vm.customization.GlobalIPSettings()
         ident = vim.vm.customization.LinuxPrep()
         ident.hostName = vim.vm.customization.FixedName()
-        ident.hostName.name = newvm
+        # hostname 统一设置成 vmcentos，而不是新虚机名字，因为新虚机名字可能为中文。
+        ident.hostName.name = "vmcentos"
 
         cloneCustomSpec = vim.vm.customization.Specification()
         cloneCustomSpec.nicSettingMap = nicSettingMap

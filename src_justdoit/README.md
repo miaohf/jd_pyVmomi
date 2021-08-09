@@ -51,6 +51,7 @@ ident.hostName.name = newvm
    invalidProperty = 'spec.identity.hostName'
 }
 ```
+另外，我们的虚机名字可能为中文，所以`ident.hostName.name`统一设置成了 `vmcentos`
 
 参考：
 
