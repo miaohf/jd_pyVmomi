@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
-from src_get_info import asset_esxi, vm_area, vm_system, vm_vmsdsmap, asset_vms, \
+from src_get_info import asset_esxi, vm_system, vm_vmsdsmap, asset_vms, \
     asset_vm_resource, asset_datastore, asset_vm_vmsnet, vm_vmsnetwork, \
-    asset_vm_datacenter
+    asset_vm_datacenter, vm_area
 
 from src_justdoit import folder_operations, vm_operations
 

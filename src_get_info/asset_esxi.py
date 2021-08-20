@@ -96,9 +96,9 @@ def get_esxi_info(cloudid):
 
             esxiDict['ESXI_' + esxiSummary.config.name] = esxiInfo
 
-            dcDict['DC_' + datacenterName] = esxiDict
+            # dcDict['DC_' + datacenterName] = esxiDict
 
-    return dcDict
+    return esxiDict
 
 
 if __name__ == "__main__":
