@@ -65,7 +65,8 @@ def vminfo(vm, cloudid):
     vmsChkTime = vm.storage.timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
     # 虚机信息字典
-    vminfo = {'VMID': vmSummary.config.instanceUuid,
+    # 'VMID': vmSummary.config.instanceUuid
+    vminfo = {'VMID': get_obj_id.id(vm),
               'AREAID': areaID,
               'SYSID': sysID,
               'HOSTID': hostID,
