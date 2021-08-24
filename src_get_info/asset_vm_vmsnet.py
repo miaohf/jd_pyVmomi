@@ -31,7 +31,7 @@ def vmnet_poweredon(vm, cloudid):
     本段函数只处理处于开机状态的虚机
     """
     global vmNic, vmNetInfo
-    vmNic = {}
+    vmNic = []
     count = 0
     vmNet = vm.guest.net
     for nicInfo in vmNet:
@@ -52,12 +52,12 @@ def vmnet_poweredon(vm, cloudid):
                     else:
                         realipflag = True
 
-                if ipreal.prefixLength == 64:
-                    ipV = 6
-                else:
-                    ipV = 4
+                # if ipreal.prefixLength == 64:
+                #     ipV = 6
+                # else:
+                #     ipV = 4
             ipeach['REALIPFLAG'] = realipflag
-            ipeach['IPv'] = ipV
+            # ipeach['IPv'] = ipV
             ipcount += 1
 
         vmNetInfo = {'DEVICE_ID': (vmnetid(vm,
@@ -70,14 +70,15 @@ def vmnet_poweredon(vm, cloudid):
                      'SUBNETWORKID': '',
                      # 'REALIPFLAG': '',
                      }
-        vmNic['Nic_' + str(count)] = vmNetInfo
 
+        # vmNic['Nic_' + str(count)] = vmNetInfo
+        vmNic.append(vmNetInfo)
     return vmNic
 
 
 def vmnet_poweredoff(vm):
     global vmNet, vmDevice
-    vmNet = {}
+    vmNet = []
     vmDevice = {}
     count = 0
 
@@ -91,8 +92,9 @@ def vmnet_poweredoff(vm):
             'SUBNETWORKID': '',
             'REALIPFLAG': '',
         }
-        count += 1
-        vmNet['Nic_' + str(count)] = vmDevice
+        vmNet.append(vmDevice)
+        # count += 1
+        # vmNet['Nic_' + str(count)] = vmDevice
 
     return vmNet
 
@@ -112,17 +114,31 @@ def get_vmnet_info(cloudid):
     vmNetInfoDict = {}
 
     # 根据虚机的电源状况，分别构建字典
+    # for vm in vms:
+    #     if vm.runtime.powerState == 'poweredOn':
+    #         vmNetInfoDict['VM_' + vm.name] = vmnet_poweredon(vm, cloudid)
+    #         vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
+    #         vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
+    #         vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
+    #     else:
+    #         vmNetInfoDict['VM_' + vm.name] = vmnet_poweredoff(vm)
+    #         vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
+    #         vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
+    #         vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
+
     for vm in vms:
         if vm.runtime.powerState == 'poweredOn':
-            vmNetInfoDict['VM_' + vm.name] = vmnet_poweredon(vm, cloudid)
+            vmNetInfoDict['VM_' + vm.name] = {}
             vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
             vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
             vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
+            vmNetInfoDict['VM_' + vm.name]['Nic'] = vmnet_poweredon(vm, cloudid)
         else:
-            vmNetInfoDict['VM_' + vm.name] = vmnet_poweredoff(vm)
+            vmNetInfoDict['VM_' + vm.name] = {}
             vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
             vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
             vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
+            vmNetInfoDict['VM_' + vm.name]['Nic'] = vmnet_poweredoff(vm)
 
     return vmNetInfoDict
 
