@@ -37,10 +37,10 @@ def vmnet_poweredon(vm, cloudid):
     for nicInfo in vmNet:
         ipcount = 0
         count += 1
-        ipaddress = {}
+        ipaddress = []
         for ip in nicInfo.ipAddress:
             ipeach = {}
-            ipaddress['IP_' + str(ipcount)] = ipeach
+            # ipaddress['IP_' + str(ipcount)] = ipeach
             ipeach['IP'] = ip
             global realipflag
             for ipreal in nicInfo.ipConfig.ipAddress:
@@ -58,7 +58,8 @@ def vmnet_poweredon(vm, cloudid):
                 #     ipV = 4
             ipeach['REALIPFLAG'] = realipflag
             # ipeach['IPv'] = ipV
-            ipcount += 1
+            # ipcount += 1
+            ipaddress.append(ipeach)
 
         vmNetInfo = {'DEVICE_ID': (vmnetid(vm,
                                            nicInfo.network) if nicInfo.deviceConfigId != -1 else ''),
