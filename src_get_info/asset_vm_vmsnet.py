@@ -80,7 +80,7 @@ def vmnet_poweredoff(vm):
     global vmNet, vmDevice
     vmNet = []
     vmDevice = {}
-    count = 0
+    # count = 0
 
     for vmnet in vm.network:
         vmDevice = {
