@@ -133,13 +133,13 @@ def get_vmnet_info(cloudid):
             vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
             vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
             vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
-            vmNetInfoDict['VM_' + vm.name]['Nic'] = vmnet_poweredon(vm, cloudid)
+            vmNetInfoDict['VM_' + vm.name]['NIC'] = vmnet_poweredon(vm, cloudid)
         else:
             vmNetInfoDict['VM_' + vm.name] = {}
             vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
             vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
             vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
-            vmNetInfoDict['VM_' + vm.name]['Nic'] = vmnet_poweredoff(vm)
+            vmNetInfoDict['VM_' + vm.name]['NIC'] = vmnet_poweredoff(vm)
 
     return vmNetInfoDict
 
