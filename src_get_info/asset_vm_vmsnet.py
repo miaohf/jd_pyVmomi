@@ -89,7 +89,7 @@ def vmnet_poweredoff(vm):
             'MAC_ADDRESS': '',
             'IS_CONNECTED': '',
             'NETWORK_NAME': (vmnet.name if len(vm.network) != 0 else ''),
-            'IPADDRESS': '',
+            'IPADDRESS': [],
             'SUBNETWORKID': '',
             'REALIPFLAG': '',
         }
