@@ -9,48 +9,9 @@ To login into vCenter.Return the vCetner service_instance.
 
 from pyVim.connect import SmartConnectNoSSL, Disconnect
 import atexit
-import argparse
-import getpass
 import configparser
 import sys
 from pyVmomi import vmodl
-
-
-def get_args():
-    parser = argparse.ArgumentParser(
-        description='Standard Arguments for talking to vCenter'
-    )
-
-    parser.add_argument('-s', '--host',
-                        required=True,
-                        action='store',
-                        help='The ip address of the vCenter to connect to')
-
-    parser.add_argument('-o', '--port',
-                        type=int,
-                        default=443,
-                        action='store',
-                        help='Port of the vCenter')
-
-    parser.add_argument('-u', '--user',
-                        required=True,
-                        action='store',
-                        help='User name of the vCenter')
-
-    parser.add_argument('-p', '--password',
-                        required=True,
-                        action='store',
-                        help='Password of the vCenter')
-
-    args = parser.parse_args()
-
-    if not args.password:
-        args.password = getpass.getpass(
-            prompt='Enter the password for vCenter %s and user %s: '
-                   % (args.host, args.user)
-        )
-
-    return args
 
 
 def vclogin(cloudid):

@@ -1255,6 +1255,3 @@ def vm_snapshot_list(rootsnapshot):
 
 if __name__ == "__main__":
     vmEntity = VirtualMachine('api-test', 'ljd-admin', 8)
-    # 虚机配 IP
-    # newip = ['x', 'x', 'x']
-    # print(vmEntity.vm_configure_ipaddress(newip))

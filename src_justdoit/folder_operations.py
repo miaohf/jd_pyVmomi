@@ -10,38 +10,6 @@ Some operations for folders in vCenter.
 from pyVmomi import vim
 from src_share import get_objInfo, vcenter_instance_check, vc_login, logger
 
-import argparse
-
-
-def get_args():
-    parser = argparse.ArgumentParser(
-        description='Arguments for creating a new vm folder'
-    )
-
-    parser.add_argument('-f', '--folder',
-                        required=True,
-                        action='store',
-                        help='(mandatory)Name of the folder to be created')
-
-    parser.add_argument('-p', '--pfolder',
-                        required=False,
-                        action='store',
-                        help='(mandatory)Parent folder of the folder to be created')
-
-    parser.add_argument('-o', '--operate',
-                        required=True,
-                        action='store',
-                        help="(mandatory)Operate to do with the folder."
-                             "(get/create/rename/delete)")
-
-    parser.add_argument('-n', '--newname',
-                        required=False,
-                        action='store',
-                        help='The new name of the folder to rename.')
-
-    my_args = parser.parse_args()
-    return my_args
-
 
 class VmFolder:
     def __init__(self, name, pfolder, cloudid):
@@ -171,17 +139,3 @@ class VmFolder:
 
 if __name__ == "__main__":
     cloudid = 7
-
-    args = get_args()
-    folder = VmFolder(args.folder)
-
-    if args.operate == "get":
-        folder.get_folder()
-    elif args.operate == "delete":
-        folder.delete_folder()
-    elif args.operate == "create":
-        folder.create_folder(pfolder=args.pfolder)
-    elif args.operate == "rename":
-        folder.rename_folder(args.newname)
-    else:
-        raise ValueError('Wrong parameters.Use -h to see parameters.')
