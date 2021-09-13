@@ -32,6 +32,10 @@ class VmFolder:
         else:
             topFolder = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
                                             self.__pfolder)
+            if not topFolder:
+                msg = ("指定的父目录 {} 不存在。".format(self.__pfolder))
+                log.error(msg)
+                return 'Failed'
 
         try:
             topFolder.CreateFolder(self.__name)

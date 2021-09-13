@@ -12,16 +12,16 @@ from src_share import vcenter_instance_check, get_obj_id
 
 
 def vmnetinfo(network, cloudid):
-    if network.name[:2] == "M_":
-        sysmondata = 1
-    else:
-        sysmondata = ''
+    # if network.name[:2] == "M_":
+    #     sysmondata = 1
+    # else:
+    #     sysmondata = ''
 
     netDict = {'ID': get_obj_id.id(network),
                'NAME': network.name,
                'CHKTIME': '',
                'DESCRIPTION': '',
-               'SYSMONDATA': str(sysmondata),
+               'SYSMONDATA': '',
                'CLOUD': cloudid
                }
 
