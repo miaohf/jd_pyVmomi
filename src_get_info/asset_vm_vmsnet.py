@@ -8,7 +8,7 @@ Get the information about vm's network devices.
 """
 
 from pyVmomi import vim
-from src_share import vcenter_instance_check, get_obj_id
+from src_share import get_obj_id, vcenter_instance_check
 
 
 def vmnetid(vm, devicename):

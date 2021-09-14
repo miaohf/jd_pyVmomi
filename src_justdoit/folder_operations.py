@@ -8,7 +8,7 @@ Some operations for folders in vCenter.
 """
 
 from pyVmomi import vim
-from src_share import get_objInfo, vcenter_instance_check, vc_login, logger
+from src_share import get_objInfo, vc_login, logger
 
 
 class VmFolder:

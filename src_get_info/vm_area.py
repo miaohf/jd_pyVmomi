@@ -7,7 +7,7 @@ Github:
 Get the information about vm 1st-level folders.
 """
 
-from src_share import vcenter_instance_check, get_obj_id
+from src_share import get_obj_id, vcenter_instance_check
 
 
 def get_vm_area(cloudid):

@@ -11,3 +11,9 @@ def vc_instance_check(cloudid):
     si_content = si.RetrieveContent()
 
     return si_content
+
+
+if __name__ == "__main__":
+    cloudid = 7
+    c = vc_instance_check(cloudid)
+    print(c)

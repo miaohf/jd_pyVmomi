@@ -7,7 +7,7 @@ Github:
 Get the information about vm 2nd-level folders.
 """
 
-from src_share import vcenter_instance_check, get_obj_id
+from src_share import get_obj_id, vcenter_instance_check
 
 global allDict
 allDict = {}
