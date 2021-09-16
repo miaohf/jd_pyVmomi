@@ -1,4 +1,7 @@
+from flask import jsonify
+
+
 def return_info(code, msg):
-    d = {'code': code,
-         'msg': msg}
-    return d
+    d = {'returnCode': code,
+         'returnMsg': msg}
+    return jsonify(d)

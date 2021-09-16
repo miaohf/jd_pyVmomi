@@ -114,19 +114,6 @@ def get_vmnet_info(cloudid):
     global vmNetInfoDict
     vmNetInfoDict = {}
 
-    # 根据虚机的电源状况，分别构建字典
-    # for vm in vms:
-    #     if vm.runtime.powerState == 'poweredOn':
-    #         vmNetInfoDict['VM_' + vm.name] = vmnet_poweredon(vm, cloudid)
-    #         vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
-    #         vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
-    #         vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
-    #     else:
-    #         vmNetInfoDict['VM_' + vm.name] = vmnet_poweredoff(vm)
-    #         vmNetInfoDict['VM_' + vm.name]['VMID'] = get_obj_id.id(vm)
-    #         vmNetInfoDict['VM_' + vm.name]['CLOUD'] = cloudid
-    #         vmNetInfoDict['VM_' + vm.name]['CHKTIME'] = ''
-
     for vm in vms:
         if vm.runtime.powerState == 'poweredOn':
             vmNetInfoDict['VM_' + vm.name] = {}

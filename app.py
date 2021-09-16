@@ -17,24 +17,6 @@ def hello():
     return jsonify(data)
 
 
-@app.route('/api/printarg')
-# example: http://127.0.0.1:5000/api/printarg?a=4&b=6
-def printarg():
-    a = request.args
-    return jsonify(a)
-
-
-@app.route('/api/esxitest')
-def esxii():
-    esxiInfo = test.get_esxi_info()
-    return jsonify(esxiInfo)
-
-
-@app.route('/api/<int:cc>/ljd')
-def ljd(cc):
-    return str(cc)
-
-
 # 表 PARA_VM_AREA，即 vc 里第一层的虚机文件夹（例如云创新/孵化区）
 @app.route('/api/<int:cloudid>/para_vm_area')
 def route_vm_area(cloudid):
@@ -186,10 +168,15 @@ parentFolder: 新文件夹位于哪个文件夹下
 """
 
 
-@app.route('/api/<int:cloudid>/folder_create')
+@app.route('/api/<int:cloudid>/folder_create', methods=['GET', 'POST'])
 def folder_create(cloudid):
-    parentFolder = request.args.get('pfolder')
-    newFolder = request.args.get('nfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        parentFolder = data['pfolder']
+        newFolder = data['nfolder']
+    else:
+        parentFolder = request.args.get('pfolder')
+        newFolder = request.args.get('nfolder')
 
     folder = folder_operations.VmFolder(name=newFolder, pfolder=parentFolder,
                                         cloudid=cloudid)
@@ -202,10 +189,15 @@ def folder_create(cloudid):
 """
 
 
-@app.route('/api/<int:cloudid>/folder_delete')
+@app.route('/api/<int:cloudid>/folder_delete', methods=['GET', 'POST'])
 def folder_delete(cloudid):
-    parentFolder = request.args.get('pfolder')
-    folder = request.args.get('folder')
+    if request.method == 'POST':
+        data = request.get_json()
+        parentFolder = data['pfolder']
+        folder = data['folder']
+    else:
+        parentFolder = request.args.get('pfolder')
+        folder = request.args.get('folder')
 
     folder = folder_operations.VmFolder(name=folder, pfolder=parentFolder,
                                         cloudid=cloudid)
@@ -213,11 +205,17 @@ def folder_delete(cloudid):
 
 
 # 重命名文件夹
-@app.route('/api/<int:cloudid>/folder_rename')
+@app.route('/api/<int:cloudid>/folder_rename', methods=['GET', 'POST'])
 def folder_rename(cloudid):
-    parentFolder = request.args.get('pfolder')
-    folder = request.args.get('folder')
-    newname = request.args.get('newname')
+    if request.method == 'POST':
+        data = request.get_json()
+        parentFolder = data['pfolder']
+        folder = data['folder']
+        newname = data['newname']
+    else:
+        parentFolder = request.args.get('pfolder')
+        folder = request.args.get('folder')
+        newname = request.args.get('newname')
 
     folder = folder_operations.VmFolder(name=folder, pfolder=parentFolder,
                                         cloudid=cloudid)
@@ -241,14 +239,23 @@ def vm_exist_check(cloudid):
 
 
 # 克隆虚拟机
-@app.route('/api/<int:cloudid>/vm_clone')
+@app.route('/api/<int:cloudid>/vm_clone', methods=['GET', 'POST'])
 def vm_clone(cloudid):
-    templateName = request.args.get('template')
-    parentFolder = request.args.get('pfolder')
-    newvm = request.args.get('newvm')
-    newvmpfolder = request.args.get('newvmpfolder')
-    newvmhost = request.args.get('newvmhost')
-    newvmdatastore = request.args.get('newvmdatastore')
+    if request.method == 'POST':
+        data = request.get_json()
+        templateName = data['template']
+        parentFolder = data['pfolder']
+        newvm = data['newvm']
+        newvmpfolder = data['newvmpfolder']
+        newvmhost = data['newvmhost']
+        newvmdatastore = data['newvmdatastore']
+    else:
+        templateName = request.args.get('template')
+        parentFolder = request.args.get('pfolder')
+        newvm = request.args.get('newvm')
+        newvmpfolder = request.args.get('newvmpfolder')
+        newvmhost = request.args.get('newvmhost')
+        newvmdatastore = request.args.get('newvmdatastore')
 
     vm = vm_operations.VirtualMachine(name=templateName, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -257,19 +264,31 @@ def vm_clone(cloudid):
 
 
 # 克隆虚拟机，并配置 IP 地址
-@app.route('/api/<int:cloudid>/vm_clone_with_ip')
+@app.route('/api/<int:cloudid>/vm_clone_with_ip', methods=['GET', 'POST'])
 def vm_clone_with_ip(cloudid):
-    templateName = request.args.get('template')
-    parentFolder = request.args.get('pfolder')
-    newvm = request.args.get('newvm')
-    newip1 = request.args.get('newip1')
-    newip2 = request.args.get('newip2')
-    newip3 = request.args.get('newip3')
-    newIP = [newip1, newip2, newip3]
-    newvmpfolder = request.args.get('newvmpfolder')
-    newvmhost = request.args.get('newvmhost')
-    newvmdatastore = request.args.get('newvmdatastore')
+    if request.method == 'POST':
+        data = request.get_json()
+        templateName = data['template']
+        parentFolder = data['pfolder']
+        newvm = data['newvm']
+        newIP1 = data['newip1']
+        newIP2 = data['newip2']
+        newIP3 = data['newip3']
+        newvmpfolder = data['newvmpfolder']
+        newvmhost = data['newvmhost']
+        newvmdatastore = data['newvmdatastore']
+    else:
+        templateName = request.args.get('template')
+        parentFolder = request.args.get('pfolder')
+        newvm = request.args.get('newvm')
+        newIP1 = request.args.get('newip1')
+        newIP2 = request.args.get('newip2')
+        newIP3 = request.args.get('newip3')
+        newvmpfolder = request.args.get('newvmpfolder')
+        newvmhost = request.args.get('newvmhost')
+        newvmdatastore = request.args.get('newvmdatastore')
 
+    newIP = [newIP1, newIP2, newIP3]
     vm = vm_operations.VirtualMachine(name=templateName, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_clone_with_ip(newvm=newvm, newvmpfolder=newvmpfolder,
@@ -278,10 +297,15 @@ def vm_clone_with_ip(cloudid):
 
 
 # 删除虚拟机
-@app.route('/api/<int:cloudid>/vm_delete')
+@app.route('/api/<int:cloudid>/vm_delete', methods=['GET', 'POST'])
 def vm_delete(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfolder']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -289,11 +313,17 @@ def vm_delete(cloudid):
 
 
 # 重命名虚拟机
-@app.route('/api/<int:cloudid>/vm_rename')
+@app.route('/api/<int:cloudid>/vm_rename', methods=['GET', 'POST'])
 def vm_rename(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    newname = request.args.get('newname')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfolder']
+        newname = data['newname']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        newname = request.args.get('newname')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -301,10 +331,15 @@ def vm_rename(cloudid):
 
 
 # 打开虚拟机电源
-@app.route('/api/<int:cloudid>/vm_poweron')
+@app.route('/api/<int:cloudid>/vm_poweron', methods=['GET', 'POST'])
 def vm_poweron(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfolder']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -312,21 +347,32 @@ def vm_poweron(cloudid):
 
 
 # 关闭虚拟机电源
-@app.route('/api/<int:cloudid>/vm_poweroff')
+@app.route('/api/<int:cloudid>/vm_poweroff', methods=['GET', 'POST'])
 def vm_poweroff(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfolder']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
+
     return vm.vm_poweroff()
 
 
 # 重启虚拟机
-@app.route('/api/<int:cloudid>/vm_reboot')
+@app.route('/api/<int:cloudid>/vm_reboot', methods=['GET', 'POST'])
 def vm_reboot(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -334,22 +380,51 @@ def vm_reboot(cloudid):
 
 
 # 虚拟机新建快照
-@app.route('/api/<int:cloudid>/vm_snapshot_create')
+@app.route('/api/<int:cloudid>/vm_snapshot_create', methods=['GET', 'POST'])
 def vm_snapshot_create(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_snapshot_create()
 
 
+# 查询虚机下的快照信息
+@app.route('/api/<int:cloudid>/vm_snapshots', methods=['GET', 'POST'])
+def vm_snapshots(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+
+    vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    s = vm.vm_snapshots_display()
+    print(type(s))
+    return s
+
+
 # 虚拟机删除快照
-@app.route('/api/<int:cloudid>/vm_snapshot_delete')
+@app.route('/api/<int:cloudid>/vm_snapshot_delete', methods=['GET', 'POST'])
 def vm_snapshot_delete(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    snapToDelete = request.args.get('snaptodelete')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        snapToDelete = data['snaptodelete']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        snapToDelete = request.args.get('snaptodelete')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -357,11 +432,17 @@ def vm_snapshot_delete(cloudid):
 
 
 # 虚拟机快照恢复
-@app.route('/api/<int:cloudid>/vm_snapshot_revert')
+@app.route('/api/<int:cloudid>/vm_snapshot_revert', methods=['GET', 'POST'])
 def vm_snapshot_revert(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    snapToRevert = request.args.get('snaptorevert')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        snapToRevert = data['snaptorevert']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        snapToRevert = request.args.get('snaptorevert')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -369,10 +450,15 @@ def vm_snapshot_revert(cloudid):
 
 
 # 虚拟机删除全部快照
-@app.route('/api/<int:cloudid>/vm_snapshot_delete_all')
+@app.route('/api/<int:cloudid>/vm_snapshot_delete_all', methods=['GET', 'POST'])
 def vm_snapshot_delete_all(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -380,11 +466,17 @@ def vm_snapshot_delete_all(cloudid):
 
 
 # 修改虚拟机的内存大小
-@app.route('/api/<int:cloudid>/vm_reconfigure_mem')
+@app.route('/api/<int:cloudid>/vm_reconfigure_mem', methods=['GET', 'POST'])
 def vm_reconfig_mem(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    newmemsize = request.args.get('newmemsize')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        newmemsize = data['newmemsize']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        newmemsize = request.args.get('newmemsize')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -392,11 +484,17 @@ def vm_reconfig_mem(cloudid):
 
 
 # 修改虚拟机的CPU数量
-@app.route('/api/<int:cloudid>/vm_reconfigure_cpu')
+@app.route('/api/<int:cloudid>/vm_reconfigure_cpu', methods=['GET', 'POST'])
 def vm_reconfigure_cpu(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    newcpunum = request.args.get('newcpunum')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        newcpunum = data['newcpunum']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        newcpunum = request.args.get('newcpunum')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -404,11 +502,17 @@ def vm_reconfigure_cpu(cloudid):
 
 
 # 为虚拟机添加一块网卡
-@app.route('/api/<int:cloudid>/vm_reconfigure_nic_add')
+@app.route('/api/<int:cloudid>/vm_reconfigure_nic_add', methods=['GET', 'POST'])
 def vm_reconfigure_nic_add(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    newnicname = request.args.get('newnicname')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        newnicname = data['newnicname']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        newnicname = request.args.get('newnicname')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -416,11 +520,18 @@ def vm_reconfigure_nic_add(cloudid):
 
 
 # 为虚拟机删除一块网卡
-@app.route('/api/<int:cloudid>/vm_reconfigure_nic_remove')
+@app.route('/api/<int:cloudid>/vm_reconfigure_nic_remove',
+           methods=['GET', 'POST'])
 def vm_reconfigure_nic_remove(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    nicnumber = request.args.get('nicnumber')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        nicnumber = data['nicnumber']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        nicnumber = request.args.get('nicnumber')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -428,11 +539,18 @@ def vm_reconfigure_nic_remove(cloudid):
 
 
 # 为虚拟机新增一块磁盘
-@app.route('/api/<int:cloudid>/vm_reconfigure_disk_add')
+@app.route('/api/<int:cloudid>/vm_reconfigure_disk_add',
+           methods=['GET', 'POST'])
 def vm_reconfigure_disk_add(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    disksize = request.args.get('disksize')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        disksize = data['disksize']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        disksize = request.args.get('disksize')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -440,11 +558,18 @@ def vm_reconfigure_disk_add(cloudid):
 
 
 # 为虚拟机删除一块磁盘
-@app.route('/api/<int:cloudid>/vm_reconfigure_disk_remove')
+@app.route('/api/<int:cloudid>/vm_reconfigure_disk_remove',
+           methods=['GET', 'POST'])
 def vm_reconfigure_disk_remove(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    disknumber = request.args.get('disknumber')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        disknumber = data['disknumber']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        disknumber = request.args.get('disknumber')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
@@ -452,27 +577,42 @@ def vm_reconfigure_disk_remove(cloudid):
 
 
 # 为虚拟机配置 IP
-@app.route('/api/<int:cloudid>/vm_configure_ipaddress')
+@app.route('/api/<int:cloudid>/vm_configure_ipaddress', methods=['GET', 'POST'])
 def vm_configure_ipaddress(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    newIP1 = request.args.get('newip1')
-    newIP2 = request.args.get('newip2')
-    newIP3 = request.args.get('newip3')
-    newIP = [newIP1, newIP2, newIP3]
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        newIP1 = data['newip1']
+        newIP2 = data['newip2']
+        newIP3 = data['newip3']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        newIP1 = request.args.get('newip1')
+        newIP2 = request.args.get('newip2')
+        newIP3 = request.args.get('newip3')
 
+    newIP = [newIP1, newIP2, newIP3]
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_configure_ipaddress(newip=newIP)
 
 
 # 虚拟机迁移
-@app.route('/api/<int:cloudid>/vm_relocate')
+@app.route('/api/<int:cloudid>/vm_relocate', methods=['GET', 'POST'])
 def vm_relocate(cloudid):
-    vmname = request.args.get('vmname')
-    parentFolder = request.args.get('pfolder')
-    host = request.args.get('host')
-    datastore = request.args.get('datastore')
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        host = data['host']
+        datastore = data['datastore']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        host = request.args.get('host')
+        datastore = request.args.get('datastore')
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)

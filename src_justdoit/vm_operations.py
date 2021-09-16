@@ -9,6 +9,7 @@ Some
 
 from pyVmomi import vim
 from src_share import get_objInfo, logger, get_obj_id, task_check, response
+from flask import jsonify
 import time
 import string
 import random
@@ -512,7 +513,8 @@ class VirtualMachine:
             if o == 'OK':
                 msg = ("虚机 {} 已成功打开电源。".format(self.__name))
                 log.info(msg)
-                return 'OK'
+                code = 0
+                return response.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
@@ -659,6 +661,45 @@ class VirtualMachine:
             code = 1
             return response.return_info(code, msg)
 
+    def vm_snapshots_display(self):
+        """
+        通过 vm_snapshot_list() 获取该虚机的快照列表
+        :return: 返回一个 dict
+        """
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity.snapshot is None:
+            msg = ("虚机 {} 不存在任何快照。".format(self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        rootSnapshot = vmEntity.snapshot.rootSnapshotList
+        snapshotList = vm_snapshot_list(rootSnapshot)
+        # snapshotList里面快照的 'SnapshotObj' 类型是 vim.vm.Snapshot flask 无法将其 json
+        # 化 ，会报错 TypeError: Object of type 'vim.vm.Snapshot' is not JSON
+        # serializable 。所以要将其处理成字符串
+        for sl in snapshotList:
+            sl['SnapshotObj'] = str(sl['SnapshotObj'])
+
+        # The return type must be a string, dict, tuple,
+        # Response instance, or WSGI callable, it can not be a list.
+        snapshotDict = {'Snapshots': snapshotList}
+        return snapshotDict
+
     def vm_snapshot_revert(self, snapshot_name):
         """
         先通过 vm_snapshot_list() 获取该虚机的快照列表
@@ -760,6 +801,64 @@ class VirtualMachine:
                 return response.return_info(code, m)
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 的所有快照删除失败。".format(self.__name)) + e.msg
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+    def vm_reconfigure_mem(self, newmemsize):
+        newmemsize = int(newmemsize)
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if not newmemsize:
+            msg = ("未指定新的内存大小(G)，无法重新配置虚机 {}。".format(self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        currentMem = vmEntity.summary.config.memorySizeMB
+        if currentMem / 1024 == newmemsize:
+            msg = ("虚机 {} 当前内存大小等于新指定的内存大小。".format(self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity.summary.runtime.powerState == "poweredOn":
+            msg = ("虚机 {} 当前处于开机状态，无法重新配置内存大小。".format(self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        spec = vim.vm.ConfigSpec()
+        spec.memoryMB = newmemsize * 1024
+
+        try:
+            task = vmEntity.ReconfigVM_Task(spec=spec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功将虚机 {} 的内存调整为 {} GB。".format(self.__name, newmemsize))
+                log.info(msg)
+                code = 0
+                return response.return_info(code, msg)
+            else:
+                log.error(m)
+                code = 1
+                return response.return_info(code, m)
+
+        except vim.fault.VmConfigFault as e:
+            msg = ("调整虚机 {} 内存失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
             return response.return_info(code, msg)
@@ -1078,7 +1177,8 @@ class VirtualMachine:
                 if unitNumber >= 16:
                     msg = "虚机 {} 当前已有16块盘，无法继续新增磁盘。".format(self.__name)
                     log.error(msg)
-                    return 'Failed'
+                    code = 1
+                    return response.return_info(code, msg)
             # controllerKey 等于最后一块盘的 controllerKey
             controllerKey = dev.controllerKey
 
@@ -1389,4 +1489,6 @@ def vm_snapshot_list(rootsnapshot):
 
 
 if __name__ == "__main__":
-    vmEntity = VirtualMachine('api-test', 'ljd-admin', 8)
+    vmEntity = VirtualMachine('clone_test2', 'ljd_test', 7)
+    print(vmEntity.vm_snapshots_display())
+    print(type(vmEntity.vm_snapshots_display()))
