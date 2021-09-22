@@ -77,6 +77,11 @@ def esxi_info(esxi, summary, hardware):
 
 def get_esxi_info(cloudid):
     si_content = vcenter_instance_check.vc_instance_check(cloudid)
+    # 新增判断，当传入了错误的 cloudid 时，vc_instance_check() 返回的是一个包含错误信息的字典
+    # 此时第 53 行给 datacenter 赋值的语句会报错
+    if isinstance(si_content, dict):
+        return si_content
+
     # vCenter_uuid = si_content.about.instanceUuid
 
     datacenter = si_content.rootFolder.childEntity[0]

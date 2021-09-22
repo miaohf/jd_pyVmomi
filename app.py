@@ -408,9 +408,7 @@ def vm_snapshots(cloudid):
 
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
-    s = vm.vm_snapshots_display()
-    print(type(s))
-    return s
+    return vm.vm_snapshots_display()
 
 
 # 虚拟机删除快照
@@ -499,6 +497,42 @@ def vm_reconfigure_cpu(cloudid):
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_reconfigure_cpu(newcpunum=newcpunum)
+
+
+# 修改虚拟机的 CPU 资源限制
+@app.route('/api/<int:cloudid>/vm_limit_cpu', methods=['GET', 'POST'])
+def vm_limit_cpu(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        cpuLimit = data['cpulimit']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        cpuLimit = request.args.get('cpulimit')
+
+    vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_limit_cpu(cpulimit=cpuLimit)
+
+
+# 修改虚拟机的内存资源限制
+@app.route('/api/<int:cloudid>/vm_limit_mem', methods=['GET', 'POST'])
+def vm_limit_mem(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        memLimit = data['memlimit']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        memLimit = request.args.get('memlimit')
+
+    vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_limit_mem(memlimit=memLimit)
 
 
 # 为虚拟机添加一块网卡

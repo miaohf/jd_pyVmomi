@@ -697,8 +697,9 @@ class VirtualMachine:
 
         # The return type must be a string, dict, tuple,
         # Response instance, or WSGI callable, it can not be a list.
-        snapshotDict = {'Snapshots': snapshotList}
-        return snapshotDict
+        msg = {'Snapshots': snapshotList}
+        code = 0
+        return response.return_info(code, msg)
 
     def vm_snapshot_revert(self, snapshot_name):
         """
@@ -975,6 +976,118 @@ class VirtualMachine:
 
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} CPU数量失败。".format(self.__name)) + e.msg
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+    def vm_limit_cpu(self, cpulimit):
+        """
+        设置虚拟机 CPU 资源限制
+        :param cpulimit: 单位 MHz
+        :return:
+        """
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if not cpulimit:
+            msg = ("未指定 CPU 资源限制值，无法重新配置虚机 {}。".format(self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        cpuLimit = int(cpulimit)
+
+        cpuAllocation = vim.ResourceAllocationInfo()
+        cpuAllocation.limit = cpuLimit
+        cpuAllocation.reservation = 0
+
+        spec = vim.vm.ConfigSpec()
+        spec.cpuAllocation = cpuAllocation
+
+        try:
+            task = vmEntity.ReconfigVM_Task(spec=spec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = ("成功将虚机 {} CPU 资源最大值限制为了 {} MHz。".format(self.__name,
+                                                               cpuLimit))
+                log.info(msg)
+                code = 0
+                return response.return_info(code, msg)
+            else:
+                log.error(m)
+                code = 1
+                return response.return_info(code, m)
+
+        except vim.fault.VmConfigFault as e:
+            msg = ("调整虚机 {} CPU 资源限制失败。".format(self.__name)) + e.msg
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+    def vm_limit_mem(self, memlimit):
+        """
+        设置虚拟机 CPU 资源限制
+        :param memlimit: 单位 MB
+        :return:
+        """
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if not memlimit:
+            msg = ("未指定内存资源限制值，无法重新配置虚机 {}。".format(self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        memLimit = int(memlimit)
+
+        memoryAllocation = vim.ResourceAllocationInfo()
+        memoryAllocation.limit = memLimit
+        memoryAllocation.reservation = 0
+
+        spec = vim.vm.ConfigSpec()
+        spec.memoryAllocation = memoryAllocation
+
+        try:
+            task = vmEntity.ReconfigVM_Task(spec=spec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = (
+                    "成功将虚机 {} 内存资源最大值限制为了 {} MB。".format(self.__name, memLimit))
+                log.info(msg)
+                code = 0
+                return response.return_info(code, msg)
+            else:
+                log.error(m)
+                code = 1
+                return response.return_info(code, m)
+
+        except vim.fault.VmConfigFault as e:
+            msg = ("调整虚机 {} 内存资源限制失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
             return response.return_info(code, msg)

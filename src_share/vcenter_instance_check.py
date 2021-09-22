@@ -4,10 +4,12 @@ from pyVmomi import vim
 
 def vc_instance_check(cloudid):
     si = vc_login.vclogin(cloudid)
+
     if not isinstance(si, vim.ServiceInstance):
         msg = "clouid %s 不存在，请检查。" % cloudid
-        error = {"ERROR": msg}
-        return error
+        err = {"ERROR": msg}
+        return err
+
     si_content = si.RetrieveContent()
 
     return si_content

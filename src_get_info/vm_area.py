@@ -16,6 +16,11 @@ def get_vm_area(cloudid):
     """
 
     si_content = vcenter_instance_check.vc_instance_check(cloudid)
+    # 新增判断，当传入了错误的 cloudid 时，vc_instance_check() 返回的是一个包含错误信息的字典
+    # 此时第 53 行给 datacenter 赋值的语句会报错
+    if isinstance(si_content, dict):
+        return si_content
+
     datacenter = si_content.rootFolder.childEntity[0]
     # datacenterName = datacenter.name
 
