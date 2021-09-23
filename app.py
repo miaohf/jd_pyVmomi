@@ -499,7 +499,7 @@ def vm_reconfigure_cpu(cloudid):
     return vm.vm_reconfigure_cpu(newcpunum=newcpunum)
 
 
-# 修改虚拟机的 CPU 资源限制
+# 设置虚拟机的 CPU 资源限制
 @app.route('/api/<int:cloudid>/vm_limit_cpu', methods=['GET', 'POST'])
 def vm_limit_cpu(cloudid):
     if request.method == 'POST':
@@ -517,7 +517,7 @@ def vm_limit_cpu(cloudid):
     return vm.vm_limit_cpu(cpulimit=cpuLimit)
 
 
-# 修改虚拟机的内存资源限制
+# 设置虚拟机的内存资源限制
 @app.route('/api/<int:cloudid>/vm_limit_mem', methods=['GET', 'POST'])
 def vm_limit_mem(cloudid):
     if request.method == 'POST':
@@ -533,6 +533,24 @@ def vm_limit_mem(cloudid):
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_limit_mem(memlimit=memLimit)
+
+
+# 设置虚拟机的 IOPs 限制
+@app.route('/api/<int:cloudid>/vm_limit_disk_iops', methods=['GET', 'POST'])
+def vm_limit_mem(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        vmname = data['vmname']
+        parentFolder = data['pfoler']
+        iops = data['iops']
+    else:
+        vmname = request.args.get('vmname')
+        parentFolder = request.args.get('pfolder')
+        iops = request.args.get('iops')
+
+    vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
+                                      cloudid=cloudid)
+    return vm.vm_limit_disk_iops(iops=iops)
 
 
 # 为虚拟机添加一块网卡

@@ -9,7 +9,6 @@ Some
 
 from pyVmomi import vim
 from src_share import get_objInfo, logger, get_obj_id, task_check, response
-from flask import jsonify
 import time
 import string
 import random
@@ -864,64 +863,6 @@ class VirtualMachine:
             code = 1
             return response.return_info(code, msg)
 
-    def vm_reconfigure_mem(self, newmemsize):
-        newmemsize = int(newmemsize)
-        log = logger.Logger("vCenter_vm_operations")
-        vmEntity, pfolderObj = self.get_vm_obj()
-        if pfolderObj is None:
-            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
-            log.error(msg)
-            code = 1
-            return response.return_info(code, msg)
-
-        if vmEntity is None:
-            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
-                                                        self.__name))
-            log.error(msg)
-            code = 1
-            return response.return_info(code, msg)
-
-        if not newmemsize:
-            msg = ("未指定新的内存大小(G)，无法重新配置虚机 {}。".format(self.__name))
-            log.error(msg)
-            code = 1
-            return response.return_info(code, msg)
-
-        currentMem = vmEntity.summary.config.memorySizeMB
-        if currentMem / 1024 == newmemsize:
-            msg = ("虚机 {} 当前内存大小等于新指定的内存大小。".format(self.__name))
-            log.error(msg)
-            code = 1
-            return response.return_info(code, msg)
-
-        if vmEntity.summary.runtime.powerState == "poweredOn":
-            msg = ("虚机 {} 当前处于开机状态，无法重新配置内存大小。".format(self.__name))
-            log.error(msg)
-            code = 1
-            return response.return_info(code, msg)
-
-        spec = vim.vm.ConfigSpec()
-        spec.memoryMB = newmemsize * 1024
-
-        try:
-            task = vmEntity.ReconfigVM_Task(spec=spec)
-            o, m = task_check.task_check(task)
-            if o == 'OK':
-                msg = ("成功将虚机 {} 的内存调整为 {} GB。".format(self.__name, newmemsize))
-                log.info(msg)
-                code = 0
-                return response.return_info(code, msg)
-            else:
-                log.error(m)
-                code = 1
-                return response.return_info(code, m)
-
-        except vim.fault.VmConfigFault as e:
-            msg = ("调整虚机 {} 内存失败。".format(self.__name)) + e.msg
-            log.error(msg)
-            code = 1
-            return response.return_info(code, msg)
-
     def vm_reconfigure_cpu(self, newcpunum):
         newcpunum = int(newcpunum)
         log = logger.Logger("vCenter_vm_operations")
@@ -1404,6 +1345,69 @@ class VirtualMachine:
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 删除第 {} 块磁盘失败。".format(self.__name,
                                                 disknumber)) + e.msg
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+    def vm_limit_disk_iops(self, iops):
+        """
+        为虚机上所有磁盘设置 IOPs
+        :param iops: 为所有的磁盘要设置的磁盘 IOPs 数值
+        """
+        log = logger.Logger("vCenter_vm_operations")
+        vmEntity, pfolderObj = self.get_vm_obj()
+        if pfolderObj is None:
+            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if vmEntity is None:
+            msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
+                                                        self.__name))
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        if not iops:
+            msg = "未指定磁盘 IOPs。"
+            log.error(msg)
+            code = 1
+            return response.return_info(code, msg)
+
+        deviceSpecc = []
+        for d in vmEntity.config.hardware.device:
+            if isinstance(d, vim.vm.device.VirtualDisk):
+                # print(d.deviceInfo.label, ' ')
+                ioAllocation = vim.StorageResourceManager.IOAllocationInfo()
+                ioAllocation.limit = iops
+                ioAllocation.reservation = 0
+
+                d.storageIOAllocation = ioAllocation
+
+                deviceSpec = vim.vm.device.VirtualDeviceSpec()
+                deviceSpec.operation = vim.vm.device.VirtualDeviceSpec.Operation.edit
+                deviceSpec.device = d
+                deviceSpecc.append(deviceSpec)
+
+        spec = vim.vm.ConfigSpec()
+        spec.deviceChange = deviceSpecc
+
+        try:
+            task = vmEntity.ReconfigVM_Task(spec=spec)
+            o, m = task_check.task_check(task)
+            if o == 'OK':
+                msg = (
+                    "成功将虚机 {} 的 IOPS 设置为了 {}。".format(self.__name, iops))
+                log.info(msg)
+                code = 0
+                return response.return_info(code, msg)
+            else:
+                log.error(m)
+                code = 1
+                return response.return_info(code, m)
+        except vim.fault.VmConfigFault as e:
+            msg = ("虚机 {} 设置 IOPS 限制失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
             return response.return_info(code, msg)
