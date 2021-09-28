@@ -8,7 +8,7 @@ Some
 """
 
 from pyVmomi import vim
-from src_share import get_objInfo, logger, get_obj_id, task_check, response
+from src_share import get_objInfo, logger, get_obj_id, task_check, return_info
 import time
 import string
 import random
@@ -33,7 +33,7 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         for vminstance in pfolderObj.childEntity:
             if not isinstance(vminstance, vim.VirtualMachine):
@@ -48,13 +48,13 @@ class VirtualMachine:
                                                                     vminstance)))
                     log.info(msg)
                     code = 0
-                    return response.return_info(code, msg)
+                    return return_info.return_info(code, msg)
 
         msg = (
             "文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder, self.__name))
         log.error(msg)
         code = 1
-        return response.return_info(code, msg)
+        return return_info.return_info(code, msg)
 
     def get_vm_obj(self):
         """
@@ -105,19 +105,19 @@ class VirtualMachine:
                 msg = ("指定的模板的父文件夹 {} 不存在。".format(self.__pfolder))
                 log.error(msg)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
 
             if templateToClone is None:
                 msg = ("指定的模板 {} 不存在。".format(self.__name))
                 log.error(msg)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
 
         if not newvm:
             msg = "未指定新虚机名字。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 检查新虚机的目录是否存在
         folderToClone = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
@@ -126,7 +126,7 @@ class VirtualMachine:
             msg = ("指定的新虚机的父文件夹 {} 不存在。".format(newvmpfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # vm's name
         vmNameToClone = newvm
@@ -142,7 +142,7 @@ class VirtualMachine:
             msg = ("指定的主机 {} 不存在。".format(newvmhost))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 如果没有指定存储，则默认和模板所使用的存储一致
         # 如果指定了存储，则先检查指定的存储是否属于主机hostToClone
@@ -157,7 +157,7 @@ class VirtualMachine:
             msg = ("指定的存储 {} 不存在。".format(newvmdatastore))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if datastoreToClone not in hostToClone.datastore:
             msg = (
@@ -165,7 +165,7 @@ class VirtualMachine:
                                             hostToClone.name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # set resource pool，vc里只有一个资源池 Resources
         cloneResource_pool = get_objInfo.get_obj(self.__cloudid,
@@ -190,17 +190,17 @@ class VirtualMachine:
                 msg = ("新虚机 {} 克隆成功。".format(newvm))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.RuntimeFault as e:
             msg = ("新虚机 {} 克隆失败：{}。".format(newvm, e.msg))
             log.info(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_clone_with_ip(self, newvm, newvmpfolder, newip, newvmhost='',
                          newvmdatastore=''):
@@ -226,19 +226,19 @@ class VirtualMachine:
                 msg = ("指定的模板的父文件夹 {} 不存在。".format(self.__pfolder))
                 log.error(msg)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
 
             if templateToClone is None:
                 msg = ("指定的模板 {} 不存在。".format(self.__name))
                 log.error(msg)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
 
         if not newvm:
             msg = "未指定新虚机名字。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 检查新虚机的目录是否存在
         folderToClone = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
@@ -247,7 +247,7 @@ class VirtualMachine:
             msg = ("指定的新虚机的父文件夹 {} 不存在。".format(newvmpfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # vm's name
         vmNameToClone = newvm
@@ -263,7 +263,7 @@ class VirtualMachine:
             msg = ("指定的主机 {} 不存在。".format(newvmhost))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 如果没有指定存储，则默认和模板所使用的存储一致
         # 如果指定了存储，则先检查指定的存储是否属于主机hostToClone
@@ -278,7 +278,7 @@ class VirtualMachine:
             msg = ("指定的存储 {} 不存在。".format(newvmdatastore))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if datastoreToClone not in hostToClone.datastore:
             msg = (
@@ -286,7 +286,7 @@ class VirtualMachine:
                                             hostToClone.name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # set resource pool，vc里只有一个资源池 Resources
         cloneResource_pool = get_objInfo.get_obj(self.__cloudid,
@@ -297,7 +297,7 @@ class VirtualMachine:
             msg = ("未指定新虚机的 IP 列表。".format(newvmhost))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 新虚机所在的存储、主机、资源次等信息的 spec
         cloneRelocateSpec = vim.vm.RelocateSpec()
@@ -364,17 +364,17 @@ class VirtualMachine:
                 msg = ("新虚机 {} 克隆成功。".format(newvm))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.RuntimeFault as e:
             msg = ("新虚机 {} 克隆失败：{}。".format(newvm, e.msg))
             log.info(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_delete(self):
         log = logger.Logger("vCenter_vm_operations")
@@ -383,20 +383,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.runtime.powerState == "poweredOn":
             msg = ("虚拟机 {} 当前处于开机状态，无法删除。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             task = vmEntity.Destroy_Task()
@@ -405,16 +405,16 @@ class VirtualMachine:
                 msg = ("虚机 {} 已被成功删除。".format(self.__name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 删除失败。".format(self.__name)) + e
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_rename(self, newname):
         log = logger.Logger("vCenter_vm_operations")
@@ -423,26 +423,26 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             vmEntity.Rename(newname)
             msg = ("虚机 {} 成功重命名为 {}。".format(self.__name, newname))
             log.info(msg)
             code = 0
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 重命名失败。".format(self.__name)) + e
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_poweroff(self):
         log = logger.Logger("vCenter_vm_operations")
@@ -451,20 +451,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.runtime.powerState == "poweredOff":
             msg = ("虚拟机 {} 当前已经处于关机状态，无法关闭电源。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             task = vmEntity.PowerOff()
@@ -473,16 +473,16 @@ class VirtualMachine:
                 msg = ("虚机 {} 已成功关闭电源。".format(self.__name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 关闭电源失败。".format(self.__name)) + e
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_poweron(self):
         log = logger.Logger("vCenter_vm_operations")
@@ -491,20 +491,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.runtime.powerState == "poweredOn":
             msg = ("虚拟机 {} 当前已经处于开机状态，无法打开电源。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             task = vmEntity.PowerOn()
@@ -513,16 +513,16 @@ class VirtualMachine:
                 msg = ("虚机 {} 已成功打开电源。".format(self.__name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.VimFault as e:
             msg = ("虚机 {} 打开电源失败。".format(self.__name)) + e
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reboot(self):
         log = logger.Logger("vCenter_vm_operations")
@@ -531,26 +531,26 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             vmEntity.RebootGuest()
             msg = ("虚机 {} 已成功重启。".format(self.__name))
             log.info(msg)
             code = 0
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
         except vim.fault.InvalidPowerState as e:
             msg = ("虚机 {} 重启失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_snapshot_create(self):
         """
@@ -562,14 +562,14 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         localTime = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
 
@@ -587,16 +587,16 @@ class VirtualMachine:
                 msg = ("成功为虚机 {} 新建快照 {}。".format(self.__name, snapshotName))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 快照新建失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_snapshot_delete(self, snapshot_name):
         """
@@ -611,20 +611,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.snapshot is None:
             msg = ("虚机 {} 不存在任何快照。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # get all snapshots that belong to the vm
         rootSnapshot = vmEntity.snapshot.rootSnapshotList
@@ -639,7 +639,7 @@ class VirtualMachine:
             msg = ("虚机 {} 下找不到快照 {}。".format(self.__name, snapshot_name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             task = snapshotDel.RemoveSnapshot_Task(removeChildren=False)
@@ -648,17 +648,17 @@ class VirtualMachine:
                 msg = ("成功删除虚机 {} 的快照 {}。".format(self.__name, snapshot_name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 的快照 {} 删除失败。".format(self.__name,
                                                snapshot_name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_snapshots_display(self):
         """
@@ -671,20 +671,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.snapshot is None:
             msg = ("虚机 {} 不存在任何快照。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         rootSnapshot = vmEntity.snapshot.rootSnapshotList
         snapshotList = vm_snapshot_list(rootSnapshot)
@@ -698,7 +698,7 @@ class VirtualMachine:
         # Response instance, or WSGI callable, it can not be a list.
         msg = {'Snapshots': snapshotList}
         code = 0
-        return response.return_info(code, msg)
+        return return_info.return_info(code, msg)
 
     def vm_snapshot_revert(self, snapshot_name):
         """
@@ -714,20 +714,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.snapshot is None:
             msg = ("虚机 {} 不存在任何快照。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         rootSnapshot = vmEntity.snapshot.rootSnapshotList
         snapshotList = vm_snapshot_list(rootSnapshot)
@@ -741,7 +741,7 @@ class VirtualMachine:
             msg = ("虚机 {} 下找不到快照 {}。".format(self.__name, snapshot_name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             task = snapshotRevert.RevertToSnapshot_Task()
@@ -750,17 +750,17 @@ class VirtualMachine:
                 msg = ("成功将虚机 {} 恢复到快照 {}。".format(self.__name, snapshot_name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 恢复到快照 {} 失败。".format(self.__name,
                                                snapshot_name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_snapshot_delete_all(self):
         """
@@ -772,20 +772,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.snapshot is None:
             msg = ("虚机 {} 不存在任何快照。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         try:
             task = vmEntity.RemoveAllSnapshots_Task()
@@ -794,16 +794,16 @@ class VirtualMachine:
                 msg = ("成功将虚机 {} 的所有快照删除。".format(self.__name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.SnapshotFault as e:
             msg = ("虚机 {} 的所有快照删除失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reconfigure_mem(self, newmemsize):
         newmemsize = int(newmemsize)
@@ -813,33 +813,33 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not newmemsize:
             msg = ("未指定新的内存大小(G)，无法重新配置虚机 {}。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         currentMem = vmEntity.summary.config.memorySizeMB
         if currentMem / 1024 == newmemsize:
             msg = ("虚机 {} 当前内存大小等于新指定的内存大小。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.summary.runtime.powerState == "poweredOn":
             msg = ("虚机 {} 当前处于开机状态，无法重新配置内存大小。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         spec = vim.vm.ConfigSpec()
         spec.memoryMB = newmemsize * 1024
@@ -851,17 +851,17 @@ class VirtualMachine:
                 msg = ("成功将虚机 {} 的内存调整为 {} GB。".format(self.__name, newmemsize))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} 内存失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reconfigure_cpu(self, newcpunum):
         newcpunum = int(newcpunum)
@@ -871,33 +871,33 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not newcpunum:
             msg = ("未指定新的CPU数量，无法重新配置虚机 {}。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         currentCpuNum = vmEntity.summary.config.numCpu
         if currentCpuNum == newcpunum:
             msg = ("虚机 {} 当前内存大小等于新指定的CPU数量。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.summary.runtime.powerState == "poweredOn":
             msg = ("虚机 {} 当前处于开机状态，无法重新配置CPU数量。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         spec = vim.vm.ConfigSpec()
         spec.numCPUs = newcpunum
@@ -909,17 +909,17 @@ class VirtualMachine:
                 msg = ("成功将虚机 {} 的CPU数量调整为 {} 。".format(self.__name, newcpunum))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} CPU数量失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_limit_cpu(self, cpulimit):
         """
@@ -933,20 +933,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not cpulimit:
             msg = ("未指定 CPU 资源限制值，无法重新配置虚机 {}。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         cpuLimit = int(cpulimit)
 
@@ -965,17 +965,17 @@ class VirtualMachine:
                                                                cpuLimit))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} CPU 资源限制失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_limit_mem(self, memlimit):
         """
@@ -989,20 +989,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not memlimit:
             msg = ("未指定内存资源限制值，无法重新配置虚机 {}。".format(self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         memLimit = int(memlimit)
 
@@ -1021,17 +1021,17 @@ class VirtualMachine:
                     "成功将虚机 {} 内存资源最大值限制为了 {} MB。".format(self.__name, memLimit))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("调整虚机 {} 内存资源限制失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reconfigure_nic_add(self, newnicname):
         """
@@ -1044,20 +1044,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not newnicname:
             msg = "未指定要添加的网卡名。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         newNicObj = get_objInfo.get_obj(self.__cloudid, [vim.Network],
                                         newnicname)
@@ -1065,7 +1065,7 @@ class VirtualMachine:
             msg = ("指定的网卡 {} 不存在。".format(newnicname))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         spec = vim.vm.ConfigSpec()
         nicChanges = []
@@ -1105,16 +1105,16 @@ class VirtualMachine:
                 msg = ("成功为虚机 {} 添加了一块网卡 {} 。".format(self.__name, newnicname))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 添加网卡 {} 失败。".format(self.__name, newnicname)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reconfigure_nic_remove(self, nicnumber):
         log = logger.Logger("vCenter_vm_operations")
@@ -1123,20 +1123,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not nicnumber:
             msg = "未指定要删除的网卡序号。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         global diskPrefixLabel
         for dev in vmEntity.config.hardware.device:
@@ -1163,7 +1163,7 @@ class VirtualMachine:
             msg = ("虚机 {} 没有网卡序号为 {} 的网卡。".format(self.__name, nicnumber))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 配置 vim.vm.device.VirtualDeviceSpec()，将 operation 设置为 remove
         nicSpec = vim.vm.device.VirtualDeviceSpec()
@@ -1180,17 +1180,17 @@ class VirtualMachine:
                 msg = ("成功为虚机 {} 第 {} 块网卡。".format(self.__name, nicnumber))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 删除第 {} 块网卡失败。".format(self.__name, nicnumber)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reconfigure_disk_add(self, disksize):
         """
@@ -1203,20 +1203,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not disksize:
             msg = "未指定新增磁盘大小。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         spec = vim.vm.ConfigSpec()
         diskSizeInKB = int(disksize) * 1024 * 1024
@@ -1232,7 +1232,7 @@ class VirtualMachine:
                     msg = "虚机 {} 当前已有16块盘，无法继续新增磁盘。".format(self.__name)
                     log.error(msg)
                     code = 1
-                    return response.return_info(code, msg)
+                    return return_info.return_info(code, msg)
             # controllerKey 等于最后一块盘的 controllerKey
             controllerKey = dev.controllerKey
 
@@ -1256,17 +1256,17 @@ class VirtualMachine:
                 msg = ("成功为虚机 {} 新增了一块 {}GB 的磁盘。".format(self.__name, disksize))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 新增磁盘失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_reconfigure_disk_remove(self, disknumber):
         log = logger.Logger("vCenter_vm_operations")
@@ -1275,20 +1275,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not disknumber:
             msg = "未指定新增磁盘序号。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         global diskPrefixLabel
         diskPrefixLabel = None
@@ -1308,7 +1308,7 @@ class VirtualMachine:
             msg = "无法找到的磁盘标签前缀。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         diskLabel = diskPrefixLabel + str(disknumber)
         diskDevice = None
@@ -1320,7 +1320,7 @@ class VirtualMachine:
             msg = "虚机 {} 下找不到磁盘序号为 {} 的磁盘。".format(self.__name, disknumber)
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         diskSpec = vim.vm.device.VirtualDeviceSpec()
         diskSpec.operation = vim.vm.device.VirtualDeviceSpec.Operation.remove
@@ -1336,18 +1336,18 @@ class VirtualMachine:
                 msg = ("成功为虚机 {} 删除了第 {} 块磁盘。".format(self.__name, disknumber))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
 
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 删除第 {} 块磁盘失败。".format(self.__name,
                                                 disknumber)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_limit_disk_iops(self, iops):
         """
@@ -1360,27 +1360,27 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not iops:
             msg = "未指定磁盘 IOPs。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         deviceSpecc = []
         for d in vmEntity.config.hardware.device:
             if isinstance(d, vim.vm.device.VirtualDisk):
                 # print(d.deviceInfo.label, ' ')
                 ioAllocation = vim.StorageResourceManager.IOAllocationInfo()
-                ioAllocation.limit = iops
+                ioAllocation.limit = int(iops)
                 ioAllocation.reservation = 0
 
                 d.storageIOAllocation = ioAllocation
@@ -1398,19 +1398,19 @@ class VirtualMachine:
             o, m = task_check.task_check(task)
             if o == 'OK':
                 msg = (
-                    "成功将虚机 {} 的 IOPS 设置为了 {}。".format(self.__name, iops))
+                    "成功将虚机 {} 所有磁盘的 IOPS 设置为了 {}。".format(self.__name, iops))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 log.error(m)
                 code = 1
-                return response.return_info(code, m)
+                return return_info.return_info(code, m)
         except vim.fault.VmConfigFault as e:
             msg = ("虚机 {} 设置 IOPS 限制失败。".format(self.__name)) + e.msg
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_configure_ipaddress(self, newip):
         """
@@ -1426,20 +1426,20 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if len(newip) == 0:
             msg = "未指定 IP 地址。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         # 为每一块网卡配置一个 IP
         global nicSettingMap
@@ -1493,18 +1493,18 @@ class VirtualMachine:
                 msg = ('成功为虚机 {} 配置了 IP。'.format(self.__name))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 msg = ("为虚机 {} 配置 IP 失败：{}".format(self.__name, m.msg))
                 log.error(msg)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
 
         except vim.fault.CustomizationFault as e:
             msg = e
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
     def vm_relocate(self, host, datastore):
         """
@@ -1519,52 +1519,52 @@ class VirtualMachine:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity is None:
             msg = ("文件夹 {} 下不存在任何虚机或者找不到虚拟机 {}。".format(self.__pfolder,
                                                         self.__name))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not host:
             msg = "未指定迁移后的主机。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if not datastore:
             msg = "未指定迁移后的存储。"
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         hostObj = get_objInfo.get_obj(self.__cloudid, [vim.HostSystem], host)
         if not hostObj:
             msg = "指定的主机 {} 不存在。".format(host)
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
         datastoreObj = get_objInfo.get_obj(self.__cloudid, [vim.Datastore],
                                            datastore)
         if not datastoreObj:
             msg = "指定的存储 {} 不存在。".format(datastore)
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if datastoreObj not in hostObj.datastore:
             msg = "指定的存储 {} 不属于指定的主机 {}。".format(datastore, host)
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         if vmEntity.runtime.powerState == 'poweredon':
             msg = "虚拟机 {} 处于开机状态，请关机后再进行迁移。".format(self.__name)
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
         relocateSpec = vim.vm.RelocateSpec()
         relocateSpec.host = hostObj
@@ -1578,17 +1578,17 @@ class VirtualMachine:
                                                          datastore))
                 log.info(msg)
                 code = 0
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
             else:
                 msg = ("虚机 {} 迁移失败：".format(self.__name, m.msg))
                 log.error(msg)
                 code = 1
-                return response.return_info(code, msg)
+                return return_info.return_info(code, msg)
         except vim.fault.MigrationFault as e:
             msg = ("虚机 {} 迁移失败：".format(self.__name, e))
             log.error(msg)
             code = 1
-            return response.return_info(code, msg)
+            return return_info.return_info(code, msg)
 
 
 # 递归获取所有快照信息

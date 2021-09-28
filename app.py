@@ -369,7 +369,7 @@ def vm_reboot(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
     else:
         vmname = request.args.get('vmname')
         parentFolder = request.args.get('pfolder')
@@ -385,7 +385,7 @@ def vm_snapshot_create(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
     else:
         vmname = request.args.get('vmname')
         parentFolder = request.args.get('pfolder')
@@ -401,7 +401,7 @@ def vm_snapshots(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
     else:
         vmname = request.args.get('vmname')
         parentFolder = request.args.get('pfolder')
@@ -417,7 +417,7 @@ def vm_snapshot_delete(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         snapToDelete = data['snaptodelete']
     else:
         vmname = request.args.get('vmname')
@@ -435,7 +435,7 @@ def vm_snapshot_revert(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         snapToRevert = data['snaptorevert']
     else:
         vmname = request.args.get('vmname')
@@ -453,7 +453,7 @@ def vm_snapshot_delete_all(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
     else:
         vmname = request.args.get('vmname')
         parentFolder = request.args.get('pfolder')
@@ -469,7 +469,7 @@ def vm_reconfig_mem(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         newmemsize = data['newmemsize']
     else:
         vmname = request.args.get('vmname')
@@ -487,7 +487,7 @@ def vm_reconfigure_cpu(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         newcpunum = data['newcpunum']
     else:
         vmname = request.args.get('vmname')
@@ -505,7 +505,7 @@ def vm_limit_cpu(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         cpuLimit = data['cpulimit']
     else:
         vmname = request.args.get('vmname')
@@ -523,7 +523,7 @@ def vm_limit_mem(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         memLimit = data['memlimit']
     else:
         vmname = request.args.get('vmname')
@@ -537,11 +537,11 @@ def vm_limit_mem(cloudid):
 
 # 设置虚拟机的 IOPs 限制
 @app.route('/api/<int:cloudid>/vm_limit_disk_iops', methods=['GET', 'POST'])
-def vm_limit_mem(cloudid):
+def vm_limit_disk_iops(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         iops = data['iops']
     else:
         vmname = request.args.get('vmname')
@@ -559,7 +559,7 @@ def vm_reconfigure_nic_add(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         newnicname = data['newnicname']
     else:
         vmname = request.args.get('vmname')
@@ -578,7 +578,7 @@ def vm_reconfigure_nic_remove(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         nicnumber = data['nicnumber']
     else:
         vmname = request.args.get('vmname')
@@ -597,7 +597,7 @@ def vm_reconfigure_disk_add(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         disksize = data['disksize']
     else:
         vmname = request.args.get('vmname')
@@ -616,7 +616,7 @@ def vm_reconfigure_disk_remove(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         disknumber = data['disknumber']
     else:
         vmname = request.args.get('vmname')
@@ -634,7 +634,7 @@ def vm_configure_ipaddress(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         newIP1 = data['newip1']
         newIP2 = data['newip2']
         newIP3 = data['newip3']
@@ -657,7 +657,7 @@ def vm_relocate(cloudid):
     if request.method == 'POST':
         data = request.get_json()
         vmname = data['vmname']
-        parentFolder = data['pfoler']
+        parentFolder = data['pfolder']
         host = data['host']
         datastore = data['datastore']
     else:
