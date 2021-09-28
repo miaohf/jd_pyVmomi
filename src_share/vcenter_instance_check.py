@@ -6,7 +6,7 @@ def vc_instance_check(cloudid):
     si = vc_login.vclogin(cloudid)
 
     if not isinstance(si, vim.ServiceInstance):
-        msg = "clouid %s 不存在，请检查。" % cloudid
+        msg = ("clouid {} 不存在，请检查。".format(cloudid))
         err = {"ERROR": msg}
         return err
 

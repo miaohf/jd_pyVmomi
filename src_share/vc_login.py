@@ -7,7 +7,7 @@ Github:
 To login into vCenter.Return the vCetner service_instance.
 """
 
-from pyVim.connect import SmartConnectNoSSL, Disconnect
+from pyVim.connect import SmartConnect, Disconnect
 import atexit
 import configparser
 import sys
@@ -33,11 +33,12 @@ def vclogin(cloudid):
     vcPass = vcConfig['password']
 
     try:
-        si = SmartConnectNoSSL(
+        si = SmartConnect(
             host=vcHost,
             user=vcUser,
             pwd=vcPass,
-            port=443
+            port=443,
+            disableSslCertValidation=True
         )
 
         atexit.register(Disconnect, si)
