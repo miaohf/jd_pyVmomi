@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from src_get_info import asset_esxi, vm_system, vm_vmsdsmap, asset_vms, \
     asset_vm_resource, asset_datastore, asset_vm_vmsnet, vm_vmsnetwork, \
     asset_vm_datacenter, vm_area
-
+from src_nsx import nsx_login
 from src_justdoit import folder_operations, vm_operations
 
 app = Flask(__name__)
@@ -220,6 +220,23 @@ def folder_rename(cloudid):
     folder = folder_operations.VmFolder(name=folder, pfolder=parentFolder,
                                         cloudid=cloudid)
     return folder.rename_folder(new_name=newname)
+
+
+# 检查某文件夹是否已经存在
+@app.route('/api/<int:cloudid>/folder_exist', methods=['GET', 'POST'])
+def folder_exist(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        parentFolder = data['pfolder']
+        folder_name = data['folder']
+    else:
+        parentFolder = request.args.get('pfolder')
+        folder_name = request.args.get('folder')
+
+    folder = folder_operations.VmFolder(name=folder_name, pfolder=parentFolder,
+                                        cloudid=cloudid)
+
+    return folder.folder_exist(folder_name=folder_name)
 
 
 # 检查某文件夹下是否存在某虚机
@@ -669,6 +686,69 @@ def vm_relocate(cloudid):
     vm = vm_operations.VirtualMachine(name=vmname, pfolder=parentFolder,
                                       cloudid=cloudid)
     return vm.vm_relocate(host=host, datastore=datastore)
+
+
+###############################################
+#      分      ##      分      ##      分      #
+#      隔      ##      隔      ##      隔      #
+#      线      ##      线      ##      线      #
+#   下  面  开  始  都  是  NSX 相  关  接  口   #
+###############################################
+# 创建 NSX 安全组
+@app.route('/api/<int:cloudid>/nsx_add_security_group_with_members',
+           methods=['GET', 'POST'])
+def add_security_group_with_members_for_flask(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        parentFolder = data['vmpfolder']
+    else:
+        parentFolder = request.args.get('vmpfolder')
+
+    nsx = nsx_login.get_nsx_client()
+    response = nsx.add_security_group_with_members_for_flask(
+        vmpfolder=parentFolder)
+
+    return response
+
+
+# 创建 NSX 防火墙规则
+@app.route('/api/<int:cloudid>/nsx_add_rule_for_vmsystem',
+           methods=['GET', 'POST'])
+def add_rule_for_vmsystem(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        parentFolder = data['vmpfolder']
+    else:
+        parentFolder = request.args.get('vmpfolder')
+
+    nsx = nsx_login.get_nsx_client()
+    response = nsx.add_rule_for_vmsystem(vmpfolder=parentFolder)
+
+    return response
+
+
+# 查询所有 NSX 防火墙规则
+@app.route('/api/<int:cloudid>/retrieve_dsfirewall_info',
+           methods=['GET', 'POST'])
+def retrieve_dsfirewall_info_for_flask(cloudid):
+    nsx = nsx_login.get_nsx_client()
+    response = nsx.retrieve_dsfirewall_info_for_flask()
+
+    return response
+
+
+# 删除 NSX 防火墙规则
+@app.route('/api/<int:cloudid>/nsx_delete_fw_rule', methods=['GET', 'POST'])
+def rule_delete_for_flask(cloudid):
+    if request.method == 'POST':
+        data = request.get_json()
+        rule_name = data['rname']
+    else:
+        rule_name = request.args.get('rname')
+
+    nsx = nsx_login.get_nsx_client()
+    response = nsx.delete_rule_in_layer3sections_for_flask(rule_name=rule_name)
+    return response
 
 
 if __name__ == '__main__':

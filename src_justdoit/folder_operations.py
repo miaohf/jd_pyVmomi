@@ -8,7 +8,7 @@ Some operations for folders in vCenter.
 """
 
 from pyVmomi import vim
-from src_share import get_objInfo, logger, vc_login
+from src_share import get_objInfo, logger, vc_login, return_info
 
 
 class VmFolder:
@@ -17,9 +17,29 @@ class VmFolder:
         self.__pfolder = pfolder
         self.__cloudid = cloudid
 
-    def get_folder(self):
-        print(self.__name, self.__cloudid)
-        # return get_objInfo.get_obj(content, [vim.Folder], self.__name)
+    def folder_exist(self, folder_name):
+        """
+        检查某文件夹是否已经存在
+        :return:
+        """
+        si = vc_login.vclogin(self.__cloudid)
+        datacenter = si.RetrieveContent().rootFolder.childEntity[0]
+
+        log = logger.Logger("vCenter")
+
+        targetFolder = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
+                                           folder_name)
+
+        if not targetFolder:
+            msg = ("文件夹 {} 不存在。".format(folder_name))
+            log.error(msg)
+            code = 1
+            return return_info.return_info(code, msg)
+
+        msg = ("文件夹 {} 已存在。".format(folder_name))
+        log.info(msg)
+        code = 0
+        return return_info.return_info(code, msg)
 
     def create_folder(self):
         si = vc_login.vclogin(self.__cloudid)
