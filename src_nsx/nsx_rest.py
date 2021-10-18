@@ -356,18 +356,6 @@ class NsxRest:
             code = 1
             return return_info.return_info(code, msg)
 
-    def rule_move_up(self, rule_name):
-        """
-        将指定的规则上移一位
-        :param rname: 规则名字
-        :return:
-        """
-        ruleId, etag = self.retrieve_layer3sections_rule_info(rule_name)
-        if not ruleId:
-            msg = ("指定的规则 {} 不存在。".format(rule_name))
-            code = 1
-            return return_info.return_info(code, msg)
-
 
 if __name__ == "__main__":
     pass
