@@ -22,6 +22,3 @@ def get_nsx_client():
 
 if __name__ == "__main__":
     nsx = get_nsx_client()
-    print(type(nsx._NsxRest__clouid))
-    print(nsx._NsxRest__nsxManager)
-    print(nsx._NsxRest__user)
