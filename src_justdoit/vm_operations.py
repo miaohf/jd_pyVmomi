@@ -407,6 +407,7 @@ class VirtualMachine:
                 code = 0
                 return return_info.return_info(code, msg)
             else:
+                msg = ("虚机 {} 删除失败。".format(self.__name))
                 log.error(m)
                 code = 1
                 return return_info.return_info(code, msg)
@@ -589,6 +590,7 @@ class VirtualMachine:
                 code = 0
                 return return_info.return_info(code, msg)
             else:
+                msg = ("为虚机 {} 新建快照失败。".format(self.__name))
                 log.error(m)
                 code = 1
                 return return_info.return_info(code, msg)
