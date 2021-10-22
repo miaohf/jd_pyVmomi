@@ -22,9 +22,7 @@ class NsxRest:
         """
         vmPfolder = get_objInfo.get_obj(self.__cloudid, [vim.Folder], vmpfolder)
         if not vmPfolder:
-            msg = ("找不到虚拟机目录 {}".format(vmPfolder))
-            code = 1
-            return_info.return_info(code, msg)
+            return -1
 
         vmIds = []
         for vm in vmPfolder.childEntity:
@@ -43,6 +41,9 @@ class NsxRest:
         url = self.__nsxManager + api
 
         members = self.get_vmid(vmpfolder)
+        if members == -1:
+            return -1
+
         securityGroupName = "安全组_" + vmpfolder
         data = {"name": securityGroupName, "members": members}
         response = requests.post(url, headers=self.header,
@@ -57,6 +58,8 @@ class NsxRest:
         :return:
         """
         response = self.add_security_group_with_members(vmpfolder)
+        if isinstance(response, dict):
+            return response
 
         # 201 Created: The request was completed and new resource was
         # created
@@ -207,6 +210,11 @@ class NsxRest:
         """
         # 先创建安全组，并获取其 ID
         sgResponse = self.add_security_group_with_members(vmpfolder)
+        if sgResponse == -1:
+            msg = ("项目 {} 不存在。".format(vmpfolder))
+            code = 1
+            return return_info.return_info(code, msg)
+
         # 非 0 的话表示安全组创建失败，报错退出
         # 或者表示安全组已经存在，那么对于的防火墙规则也应该已经存在，报错退出
         if sgResponse.status_code != 201:
