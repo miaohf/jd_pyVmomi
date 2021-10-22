@@ -27,18 +27,28 @@ class VmFolder:
 
         log = logger.Logger("vCenter")
 
-        targetFolder = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
-                                           folder_name)
+        if not self.__pfolder:
+            topFolder = datacenter.vmFolder.childEntity[0]
+        else:
+            topFolder = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
+                                            self.__pfolder)
+            if not topFolder:
+                msg = ("指定的父目录 {} 不存在。".format(self.__pfolder))
+                log.error(msg)
+                code = 1
+                return return_info.return_info(code, msg)
 
-        if not targetFolder:
-            msg = ("文件夹 {} 不存在。".format(folder_name))
-            log.error(msg)
-            code = 1
-            return return_info.return_info(code, msg)
+        for cfolder in topFolder.childEntity:
+            if cfolder.name == self.__name:
+                msg = ("文件夹 '{}' 存在，其父文件夹是 {}。".format(self.__name,
+                                                       topFolder.name))
+                log.info(msg)
+                code = 0
+                return return_info.return_info(code, msg)
 
-        msg = ("文件夹 {} 已存在。".format(folder_name))
+        msg = ("文件夹 {} 不存在。".format(folder_name))
         log.info(msg)
-        code = 0
+        code = 1
         return return_info.return_info(code, msg)
 
     def create_folder(self):
@@ -55,17 +65,20 @@ class VmFolder:
             if not topFolder:
                 msg = ("指定的父目录 {} 不存在。".format(self.__pfolder))
                 log.error(msg)
-                return 'Failed'
+                code = 1
+                return return_info.return_info(code, msg)
 
         try:
             topFolder.CreateFolder(self.__name)
             msg = ("新目录 '{}' 创建成功。".format(self.__name))
             log.info(msg)
-            return 'OK'
+            code = 0
+            return return_info.return_info(code, msg)
         except vim.fault.DuplicateName as e:
             msg = ("新目录 {} 创建失败：{}".format(e.name, e.msg))
             log.error(msg)
-            return 'Failed'
+            code = 1
+            return return_info.return_info(code, msg)
 
     def delete_folder(self):
         """
@@ -77,17 +90,20 @@ class VmFolder:
         global folderToDelete
         log = logger.Logger("vCenter")
 
-        if not self.__pfolder:
-            msg = ("未指定 {} 的父文件夹。".format(self.__name))
-            log.error(msg)
-            return 'Failed'
+        si = vc_login.vclogin(self.__cloudid)
+        datacenter = si.RetrieveContent().rootFolder.childEntity[0]
 
-        pfolderObj = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
-                                         self.__pfolder)
-        if pfolderObj is None:
-            msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
-            log.error(msg)
-            return 'Failed'
+        # 指定默认的 pfolder 为第一层文件夹
+        if not self.__pfolder:
+            pfolderObj = datacenter.vmFolder.childEntity[0]
+        else:
+            pfolderObj = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
+                                             self.__pfolder)
+            if not pfolderObj:
+                msg = ("指定的父目录 {} 不存在。".format(self.__pfolder))
+                log.error(msg)
+                code = 1
+                return return_info.return_info(code, msg)
 
         # 在父文件夹下尝试寻找要删除的子文件夹
         for cfolder in pfolderObj.childEntity:
@@ -98,17 +114,20 @@ class VmFolder:
                     cfolder.Destroy()
                     msg = ("文件夹 '{}' 删除成功。".format(self.__name))
                     log.info(msg)
-                    return 'OK'
+                    code = 0
+                    return return_info.return_info(code, msg)
                 except vim.fault.VimFault:
                     msg = ("文件夹 '{}' 删除失败。".format(self.__name))
                     log.error(msg)
-                    return 'Failed'
+                    code = 1
+                    return return_info.return_info(code, msg)
 
         # 在父文件夹下找不到要删除的子文件夹
         msg = (
             "请重新确认要删除文件夹 {} 的父文件夹是否为 {}。".format(self.__name, self.__pfolder))
         log.error(msg)
-        return 'Failed'
+        code = 1
+        return return_info.return_info(code, msg)
 
         # 确认由前端页面去做
         # do = input("高危操作提醒！！！请确认是否要删除对象 {} ? (yes or no)"
@@ -126,21 +145,24 @@ class VmFolder:
         if not self.__pfolder:
             msg = ("未指定 {} 的父文件夹。".format(self.__name))
             log.error(msg)
-            return 'Failed'
+            code = 1
+            return return_info.return_info(code, msg)
 
         pfolderObj = get_objInfo.get_obj(self.__cloudid, [vim.Folder],
                                          self.__pfolder)
         if pfolderObj is None:
             msg = ("指定的父文件夹 {} 不存在。".format(self.__pfolder))
             log.error(msg)
-            return 'Failed'
+            code = 1
+            return return_info.return_info(code, msg)
 
         # 在父文件夹下尝试寻找要重命名的子文件夹
         for cfolder in pfolderObj.childEntity:
             if cfolder.name == new_name:
                 msg = ("设置的新名字 {} 已被使用，请重新设置。".format(new_name))
                 log.error(msg)
-                return 'Failed'
+                code = 1
+                return return_info.return_info(code, msg)
 
             if cfolder.name != self.__name:
                 continue
@@ -149,16 +171,19 @@ class VmFolder:
                     cfolder.Rename(new_name)
                     msg = ("文件夹 '{}' 已重命名为 {}。".format(self.__name, new_name))
                     log.error(msg)
-                    return 'OK'
+                    code = 0
+                    return return_info.return_info(code, msg)
                 except vim.fault.VimFault:
                     msg = ("文件夹 '{}' 重命名失败。".format(self.__name))
                     log.error(msg)
-                    return 'Failed'
+                    code = 1
+                    return return_info.return_info(code, msg)
 
         msg = (
             "请重新确认要重命名的文件夹 {} 的父文件夹是否为 {}".format(self.__name, self.__pfolder))
         log.error(msg)
-        return 'Failed'
+        code = 1
+        return return_info.return_info(code, msg)
 
 
 if __name__ == "__main__":
